@@ -45,7 +45,7 @@ class CustomerTicketsControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_redirected_to customer_ticket_url(ticket.access_token)
-    comment = ticket.comments.order(:created_at).last
+    comment = ticket.comments.find_by!(body: "Fotografi ekledim.")
     assert comment.from_customer?
     assert_not comment.internal
     assert_equal "open", ticket.reload.status

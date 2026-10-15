@@ -63,11 +63,11 @@ Varsayımlar:
 |---|---|---|---|---|
 | Zendesk monolitinin tamamı | ~1,6M | ~16M | çıktı ~320 $ + girdi ~640–1.900 $ ≈ **1.000–2.500 $** (düzeltme turları hariç) | haftalar (tek oturuma sığmaz) |
 | Benim aort dilimim (tahmin) | ~3.000–6.000 (testler dahil) | ~30–60k | formüle göre ~2–8 $; düzeltme turlarıyla **~10–40 $** API ya da mevcut abonelik | **2–3 gün** |
-| Benim aort dilimim (**gerçek**) | ~2.900 (956 Ruby + 520 görünüm + 341 CSS + 1.089 test) | ~300k çıktı; ~112M önbellekten okuma + ~1,1M önbelleğe yazma | **~60 $** liste fiyatıyla (abonelikle ödendi) | **1 gün** (15 Ekim, molalar dahil ~12 saat) |
+| Benim aort dilimim (**gerçek**) | ~2.900 (956 Ruby + 520 görünüm + 341 CSS + 1.089 test) | ~410k çıktı; ~165M önbellekten okuma + ~1,3M önbelleğe yazma | **~85 $** liste fiyatıyla (abonelikle ödendi) | **1 gün** (15 Ekim 09:41–23:45, molalar dahil) |
 
 **Karşılaştırma için lisans maliyeti:** Zendesk Suite Professional'ın liste fiyatı temsilci başına aylık 115 $ (yıllık ödemede) ([Zendesk fiyatlandırma](https://www.zendesk.com/pricing/)). Uber ölçeğinde 1.000 temsilci için liste fiyatıyla yılda yaklaşık 1,38 milyon $ eder. Enterprise fiyatı açıklanmıyor ve kurumsal indirimleri bilmiyorum; bu rakam sadece büyüklük mertebesini göstermek için.
 
-**Tahmin ile gerçeğin farkı:** Tahminim 10–40 $ idi, gerçek ~60 $ oldu. Fark çıktıdan değil girdiden geliyor: ajan her turda bütün bağlamı (sohbet, dosyalar, loglar) yeniden okuyor. Okunan token, yazılan token'ın yaklaşık 400 katı. Yani maliyeti kod yazmak değil, ajana bağlamı tekrar tekrar "anlatmak" belirliyor. Rakamlar bu proje için tek bir uzun sohbetten ölçüldü (araştırma ve kurulum sorunları dahil). Satır sayıları `wc -l` ile, token sayıları oturum kayıtlarından sayıldı; önbellek fiyatları için standart oranlar (okuma 0,1×, yazma 2×) varsayıldı.
+**Tahmin ile gerçeğin farkı:** Tahminim 10–40 $ idi, gerçek ~85 $ oldu. Oturum oturum döküm ve karşılaşılan sorunlar: [OTURUMLAR.md](OTURUMLAR.md). Fark çıktıdan değil girdiden geliyor: ajan her turda bütün bağlamı (sohbet, dosyalar, loglar) yeniden okuyor. Okunan token, yazılan token'ın yaklaşık 400 katı. Yani maliyeti kod yazmak değil, ajana bağlamı tekrar tekrar "anlatmak" belirliyor. Rakamlar bu proje için tek bir uzun sohbetten ölçüldü (araştırma ve kurulum sorunları dahil). Satır sayıları `wc -l` ile, token sayıları oturum kayıtlarından sayıldı; önbellek fiyatları için standart oranlar (okuma 0,1×, yazma 2×) varsayıldı.
 
 **Sonuç:** Kopyalamanın token maliyeti, lisans maliyetinin yanında küçük kalıyor. Pahalı olan kısım, doğrulama süresi ve ürünün bir sonraki ihtiyacını tasarlamak.
 

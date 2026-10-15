@@ -29,6 +29,9 @@ class Ticket < ApplicationRecord
   # Turetilmis alan: ilk yanit son tarihi (SlaClock hesaplar). AGENT.md: callback yalnizca turetilmis alan icin.
   before_create { self.first_response_due_at = SlaClock.new(self).compute.due_at }
 
+  # Ilk temsilci yaniti bekleyen, sayaci isleyen talepler.
+  scope :awaiting_first_response, -> { where(first_responded_at: nil, status: %w[new open pending]) }
+
   # Ilk yaniti verilmemis, SLA'si gecmis ve sayaci isleyen talepler.
   scope :sla_breached, -> { where(first_responded_at: nil, status: %w[new open pending], first_response_due_at: ...Time.current) }
 

@@ -1,17 +1,17 @@
-<h1>Temsilci girişi</h1>
-
-<div class="card form-narrow">
-  <%= form_with url: session_path do |form| %>
-    <p>
-      <%= form.label :email_address, "E-posta" %><br>
-      <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", value: params[:email_address] %>
-    </p>
-    <p>
-      <%= form.label :password, "Şifre" %><br>
-      <%= form.password_field :password, required: true, autocomplete: "current-password", maxlength: 72 %>
-    </p>
-    <%= form.submit "Giriş yap" %>
-  <% end %>
-
-  <p><%= link_to "Şifremi unuttum", new_password_path %></p>
+<div class="auth">
+  <div class="panel">
+    <h1>Temsilci girişi</h1>
+    <%= form_with url: session_path do |form| %>
+      <div class="field">
+        <%= form.label :email_address, "E-posta" %>
+        <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", value: params[:email_address] %>
+      </div>
+      <div class="field">
+        <%= form.label :password, "Şifre" %>
+        <%= form.password_field :password, required: true, autocomplete: "current-password", maxlength: 72 %>
+      </div>
+      <%= form.submit "Giriş yap" %>
+    <% end %>
+    <p style="margin-top: 16px;"><%= link_to "Şifremi unuttum", new_password_path %></p>
+  </div>
 </div>

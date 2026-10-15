@@ -1,0 +1,33 @@
+<% info = sla_info(ticket) %>
+<% result = SlaClock.new(ticket).compute %>
+<section class="panel sla-card state-<%= info[:state] %>" aria-labelledby="sla-title">
+  <div class="sla-headline">
+    <h2 id="sla-title">İlk yanıt süresi</h2>
+    <%= priority_tag(ticket.priority) %>
+  </div>
+  <% if ticket.first_response_due_at %>
+    <div class="sla-due num"><%= tr_time(ticket.first_response_due_at) %></div>
+  <% else %>
+    <div class="sla-due num">Sayaç durdu</div>
+  <% end %>
+  <p class="sla-caption">
+    <% if ticket.first_responded_at %>
+      İlk yanıt: <%= tr_time(ticket.first_responded_at) %>
+    <% else %>
+      Hedef <%= duration_text(SlaPolicy.first_response_minutes(ticket.priority)) %> iş süresi
+    <% end %>
+  </p>
+  <%= sla_meter(ticket, info: info) %>
+
+  <h3>Bu saat nereden çıktı?</h3>
+  <ol class="timeline <%= "is-breached" if info[:state] == :breached %>">
+    <% result.steps.each do |step| %>
+      <% when_text, what_text = sla_step_parts(step) %>
+      <li class="tl tl-<%= step[:kind] %>">
+        <span class="when <%= "num" if step[:kind] == :due %>"><%= when_text %></span>
+        <span class="what"><%= what_text %></span>
+      </li>
+    <% end %>
+  </ol>
+  <p class="rules">Pzt–Cuma 09:00–18:00, Türkiye saati. Hafta sonu ve resmi tatiller sayılmaz; "Beklemede (3. taraf)" iken sayaç durur.</p>
+</section>

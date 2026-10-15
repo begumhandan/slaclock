@@ -7,8 +7,15 @@ class TicketsController < ApplicationController
     # Render ucretsiz planda uygulama uyudugu icin zamanlanmis is guvenilir degil;
     # zaman kurallari temsilci listeyi actiginda da uygulanir (bkz. AGENT.md).
     Ticket.apply_time_rules!
+    @filter = params[:filter].presence_in(%w[awaiting sla_breached on_hold solved_today]) || "all"
     @tickets = Ticket.includes(:assignee).order(created_at: :desc)
-    @tickets = @tickets.sla_breached if params[:filter] == "sla_breached"
+    @tickets = case @filter
+    when "awaiting" then @tickets.awaiting_first_response
+    when "sla_breached" then @tickets.sla_breached
+    when "on_hold" then @tickets.where(status: "on_hold")
+    when "solved_today" then @tickets.where(solved_at: Time.current.all_day)
+    else @tickets
+    end
   end
 
   def show

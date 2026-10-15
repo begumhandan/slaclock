@@ -21,4 +21,12 @@ module TicketsHelper
   def status_chip(status)
     tag.span(status_label(status), class: "chip chip-status-#{status}")
   end
+
+  def priority_tag(priority)
+    tag.span(priority_label(priority), class: "prio prio-#{priority}")
+  end
+
+  def initials(email)
+    email.to_s.split("@").first.to_s.first(2).upcase
+  end
 end

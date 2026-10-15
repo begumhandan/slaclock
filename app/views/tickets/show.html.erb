@@ -1,70 +1,77 @@
-<p><%= link_to "← Talepler", tickets_path %></p>
-<h1>#<%= @ticket.id %> <%= @ticket.subject %> <%= status_chip(@ticket.status) %></h1>
-
-<section class="card meta">
-  <div>Talep sahibi <strong><%= @ticket.requester_email %></strong></div>
-  <div>Öncelik <strong><%= priority_label(@ticket.priority) %></strong></div>
-  <div>Atanan <strong><%= @ticket.assignee&.email_address || "—" %></strong></div>
-  <div>Oluşturulma <strong><%= tr_time(@ticket.created_at) %></strong></div>
-  <div>İlk yanıt <strong><%= @ticket.first_responded_at ? tr_time(@ticket.first_responded_at) : "Henüz yok" %></strong></div>
-  <% if @ticket.solved_at %>
-    <div>Çözülme <strong><%= tr_time(@ticket.solved_at) %></strong></div>
-  <% end %>
-  <% if @ticket.auto_solve_at %>
-    <div>Otomatik çözülme <strong><%= tr_time(@ticket.auto_solve_at) %></strong></div>
-  <% end %>
-  <% if @ticket.auto_close_at %>
-    <div>Otomatik kapanma <strong><%= tr_time(@ticket.auto_close_at) %></strong></div>
-  <% end %>
-</section>
-
-<%= render "sla_panel", ticket: @ticket %>
-
-<h2>İşlemler</h2>
-<div class="actions">
-  <% if @ticket.assignee != Current.user %>
-    <%= button_to "Bana ata", assign_to_me_ticket_path(@ticket), method: :patch %>
-  <% end %>
-  <% @ticket.allowed_transitions.each do |target| %>
-    <%= button_to "→ #{status_label(target)}", transition_ticket_path(@ticket, to: target), method: :patch, form_class: "button-secondary" %>
-  <% end %>
-  <% if @ticket.allowed_transitions.empty? %>
-    <span class="muted">Bu talep kapandı; başka işlem yapılamaz.</span>
-  <% end %>
+<%= link_to "← Kuyruğa dön", tickets_path, class: "back" %>
+<div class="ticket-title">
+  <h1><%= @ticket.subject %></h1>
+  <%= status_chip(@ticket.status) %>
+</div>
+<div class="ticket-sub">
+  <span class="num">#<%= @ticket.id %></span>
+  <span><%= @ticket.requester_email %></span>
+  <span><%= tr_time(@ticket.created_at) %></span>
 </div>
 
-<% if @ticket.body.present? %>
-  <h2>Açıklama</h2>
-  <div class="card"><%= simple_format(@ticket.body) %></div>
-<% end %>
+<div class="ticket-grid">
+  <section aria-label="Yazışma">
+    <article class="message">
+      <div class="avatar" aria-hidden="true"><%= initials(@ticket.requester_email) %></div>
+      <div class="bubble">
+        <div class="bubble-head"><strong><%= @ticket.requester_email %></strong><span><%= tr_time(@ticket.created_at) %></span></div>
+        <%= @ticket.body.present? ? simple_format(@ticket.body) : tag.p("Açıklama yazılmadı.", class: "muted") %>
+      </div>
+    </article>
 
-<h2>Yanıtlar</h2>
-<% @ticket.comments.chronological.includes(:author).each do |comment| %>
-  <div class="comment <%= "internal" if comment.internal %>">
-    <small>
-      <%= comment.author&.email_address || @ticket.requester_email %> ·
-      <%= tr_time(comment.created_at) %>
-      <%= "· İç not" if comment.internal %>
-    </small>
-    <%= simple_format(comment.body) %>
-  </div>
-<% end %>
-<% if @ticket.comments.empty? %>
-  <p class="muted">Henüz yanıt yok.</p>
-<% end %>
-
-<% unless @ticket.status == "closed" %>
-  <div class="card form-narrow">
-    <%= form_with model: [ @ticket, Comment.new ] do |form| %>
-      <p>
-        <%= form.label :body, "Yanıtınız" %><br>
-        <%= form.text_area :body, rows: 4, required: true %>
-      </p>
-      <p>
-        <%= form.check_box :internal %>
-        <%= form.label :internal, "İç not (müşteri görmez, ilk yanıt sayılmaz)" %>
-      </p>
-      <%= form.submit "Yanıtı gönder" %>
+    <% @ticket.comments.chronological.includes(:author).each do |comment| %>
+      <article class="message <%= comment.internal ? "internal" : "agent" %>">
+        <div class="avatar" aria-hidden="true"><%= initials(comment.author&.email_address || @ticket.requester_email) %></div>
+        <div class="bubble">
+          <div class="bubble-head">
+            <strong><%= comment.author&.email_address || @ticket.requester_email %></strong>
+            <span><%= tr_time(comment.created_at) %></span>
+            <% if comment.internal %><span>İç not, müşteri görmez</span><% end %>
+          </div>
+          <%= simple_format(comment.body) %>
+        </div>
+      </article>
     <% end %>
-  </div>
-<% end %>
+
+    <% unless @ticket.status == "closed" %>
+      <div class="panel composer">
+        <%= form_with model: [ @ticket, Comment.new ] do |form| %>
+          <%= form.label :body, "Yanıt yaz", class: "muted" %>
+          <%= form.text_area :body, rows: 4, required: true, placeholder: "Müşteriye yanıtınız…" %>
+          <div class="composer-foot">
+            <label class="toggle">
+              <%= form.check_box :internal %>
+              İç not olarak kaydet (müşteri görmez, ilk yanıt sayılmaz)
+            </label>
+            <%= form.submit "Yanıtı gönder" %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </section>
+
+  <aside class="rail">
+    <section class="panel">
+      <h2>Durum</h2>
+      <div class="actions">
+        <% if @ticket.assignee != Current.user %>
+          <%= button_to "Bana ata", assign_to_me_ticket_path(@ticket), method: :patch %>
+        <% end %>
+        <% @ticket.allowed_transitions.each do |target| %>
+          <%= button_to status_label(target), transition_ticket_path(@ticket, to: target), method: :patch, form_class: "button_to button-quiet" %>
+        <% end %>
+        <% if @ticket.allowed_transitions.empty? %>
+          <span class="muted">Kapalı talepte işlem yapılamaz.</span>
+        <% end %>
+      </div>
+      <dl class="props" style="margin-top: 16px;">
+        <dt>Atanan</dt><dd><%= @ticket.assignee&.email_address || "Atanmadı" %></dd>
+        <% if @ticket.solved_at %><dt>Çözülme</dt><dd><%= tr_time(@ticket.solved_at) %></dd><% end %>
+        <% if @ticket.auto_solve_at %><dt>Otomatik çözülme</dt><dd><%= tr_time(@ticket.auto_solve_at) %></dd><% end %>
+        <% if @ticket.auto_close_at %><dt>Otomatik kapanma</dt><dd><%= tr_time(@ticket.auto_close_at) %></dd><% end %>
+      </dl>
+    </section>
+
+    <%= render "sla_card", ticket: @ticket %>
+  </aside>
+</div>

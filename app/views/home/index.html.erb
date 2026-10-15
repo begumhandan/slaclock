@@ -1,11 +1,39 @@
-<section class="hero card">
-  <%= render "shared/logo" %>
-  <h1>SLA Clock</h1>
-  <p>Destek talepleriniz, söz verilen sürede. Mesai, tatil ve bekleme süreleri hesaba katılarak.</p>
-  <p>
-    <%= link_to "Yeni destek talebi aç", new_ticket_path, class: "button" %>
-    <% if authenticated? %>
-      <%= link_to "Taleplere git", tickets_path, class: "button button-secondary" %>
-    <% end %>
-  </p>
+<section class="hero">
+  <div>
+    <h1>Destek talebiniz, söz verdiğimiz sürede yanıtlanır.</h1>
+    <p class="lead">
+      Yanıt süresi mesai saatlerine, resmi tatillere ve beklediğimiz yanıtlara göre hesaplanır.
+      Son tarihin neden o saat olduğunu adım adım görebilirsiniz.
+    </p>
+    <div class="cta">
+      <%= link_to "Talep aç", new_ticket_path, class: "button button-large" %>
+      <% if authenticated? %>
+        <%= link_to "Kuyruğa git", tickets_path, class: "button button-quiet button-large" %>
+      <% end %>
+    </div>
+  </div>
+
+  <aside class="panel sla-card" aria-label="Örnek hesap">
+    <div class="sla-headline">
+      <h2>Örnek: Yüksek öncelikli talep</h2>
+    </div>
+    <p class="sla-caption">Çarşamba akşamı gelen bir talebin ilk yanıt son tarihi nasıl hesaplanır?</p>
+    <ol class="timeline">
+      <li class="tl tl-start"><span class="when">28 Ekim Çarşamba 17:00</span><span class="what">Talep geldi. Hedef: 4 sa iş süresi.</span></li>
+      <li class="tl tl-work"><span class="when">28 Ekim Çarşamba, 17:00–18:00</span><span class="what">1 sa sayıldı</span></li>
+      <li class="tl tl-skip"><span class="when">29 Ekim Perşembe</span><span class="what">Sayılmadı: Cumhuriyet Bayramı</span></li>
+      <li class="tl tl-work"><span class="when">30 Ekim Cuma, 09:00–12:00</span><span class="what">3 sa sayıldı</span></li>
+      <li class="tl tl-due"><span class="when num">30 Ekim Cuma 12:00</span><span class="what">İlk yanıt için son an</span></li>
+    </ol>
+  </aside>
+</section>
+
+<section class="home-targets">
+  <div>
+    <h2>Ne zaman yanıt alırsınız?</h2>
+    <p class="muted">Talebi açarken seçtiğiniz öncelik, ilk yanıt için tanıdığımız iş süresini belirler.</p>
+  </div>
+  <div class="panel">
+    <%= render "shared/sla_targets" %>
+  </div>
 </section>

@@ -36,6 +36,13 @@ class BusinessCalendar
         zone.local(date.year, date.month, date.day, *WORK_END) ]
     end
 
+    # Iki an arasindaki is dakikasi (mesai disi, hafta sonu, tatil sayilmaz).
+    def business_minutes_between(from, to)
+      return 0 if to <= from
+
+      walk(from, Float::INFINITY, stop_at: to).used
+    end
+
     # from'dan itibaren is saatlerinde ilerleyerek `minutes` is dakikasi harcar.
     # stop_at verilirse o ana gelince durur (SLA duraklatmasi icin).
     def walk(from, minutes, stop_at: nil)

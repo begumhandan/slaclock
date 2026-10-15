@@ -1,0 +1,12 @@
+<table class="targets">
+  <% SlaPolicy::FIRST_RESPONSE_MINUTES.reverse_each do |priority, minutes| %>
+    <tr>
+      <td><%= priority_tag(priority) %></td>
+      <td class="num"><%= duration_text(minutes) %></td>
+    </tr>
+  <% end %>
+</table>
+<p class="rules">
+  Süre yalnızca mesai saatlerinde işler: Pazartesi–Cuma 09:00–18:00, Türkiye saati.
+  Hafta sonu ve resmi tatiller sayılmaz. Sizden ya da bir üçüncü taraftan yanıt beklerken sayaç durur.
+</p>

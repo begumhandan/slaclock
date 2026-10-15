@@ -1,32 +1,44 @@
-<h1>Yeni destek talebi</h1>
+<div class="form-layout">
+  <section>
+    <h1>Destek talebi aç</h1>
+    <p class="intro">Ekibimiz talebinizi aldığı andan itibaren seçtiğiniz önceliğe göre yanıt süresini işletir.</p>
 
-<div class="card form-narrow">
-  <%= form_with model: @ticket do |form| %>
-    <% if @ticket.errors.any? %>
-      <ul class="errors">
-        <% @ticket.errors.full_messages.each do |message| %>
-          <li><%= message %></li>
+    <div class="panel">
+      <%= form_with model: @ticket do |form| %>
+        <% if @ticket.errors.any? %>
+          <ul class="errors">
+            <% @ticket.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
         <% end %>
-      </ul>
-    <% end %>
 
-    <p>
-      <%= form.label :requester_email, "E-posta adresiniz" %><br>
-      <%= form.email_field :requester_email, required: true %>
-    </p>
-    <p>
-      <%= form.label :subject, "Konu" %><br>
-      <%= form.text_field :subject, required: true %>
-    </p>
-    <p>
-      <%= form.label :body, "Açıklama" %><br>
-      <%= form.text_area :body, rows: 5 %>
-    </p>
-    <p>
-      <%= form.label :priority, "Öncelik" %><br>
-      <%= form.select :priority, Ticket.priorities.keys.map { |p| [ priority_label(p), p ] } %>
-    </p>
+        <div class="field">
+          <%= form.label :requester_email, "E-posta adresiniz" %>
+          <%= form.email_field :requester_email, required: true, autocomplete: "email" %>
+          <div class="hint">Yanıtımızı bu adrese göndereceğiz.</div>
+        </div>
+        <div class="field">
+          <%= form.label :subject, "Konu" %>
+          <%= form.text_field :subject, required: true %>
+        </div>
+        <div class="field">
+          <%= form.label :body, "Ne oldu?" %>
+          <%= form.text_area :body, rows: 6 %>
+        </div>
+        <div class="field">
+          <%= form.label :priority, "Öncelik" %>
+          <%= form.select :priority, Ticket.priorities.keys.map { |p| [ priority_label(p), p ] } %>
+        </div>
 
-    <%= form.submit "Talebi gönder" %>
-  <% end %>
+        <%= form.submit "Talebi gönder", class: "button-large" %>
+      <% end %>
+    </div>
+  </section>
+
+  <aside class="panel">
+    <h2>Ne zaman yanıt alırsınız?</h2>
+    <p class="muted">Önceliğe göre ilk yanıt süresi (iş süresi):</p>
+    <%= render "shared/sla_targets" %>
+  </aside>
 </div>

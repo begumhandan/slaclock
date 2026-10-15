@@ -1,37 +1,47 @@
-<h1>Talepler</h1>
-
-<div class="filters">
-  <%= link_to "Tümü", tickets_path %>
-  <%= link_to "Sadece SLA'sı geçmiş olanlar", tickets_path(filter: "sla_breached") %>
+<div class="page-head">
+  <div>
+    <h1><%= { "awaiting" => "Yanıt bekleyenler", "sla_breached" => "SLA'sı geçenler", "on_hold" => "Beklemedekiler", "solved_today" => "Bugün çözülenler" }.fetch(@filter, "Talep kuyruğu") %></h1>
+    <p>En yeni talep en üstte. Kırmızı çizgi: süresi geçti. Kehribar çizgi: süresinin son çeyreğinde.</p>
+  </div>
+  <%= link_to "Tümünü göster", tickets_path, class: "button button-quiet" unless @filter == "all" %>
 </div>
 
-<table>
-  <thead>
-    <tr>
-      <th>#</th>
-      <th>Konu</th>
-      <th>Talep sahibi</th>
-      <th>Öncelik</th>
-      <th>Durum</th>
-      <th>Atanan</th>
-      <th>İlk yanıt SLA</th>
-    </tr>
-  </thead>
-  <tbody>
-    <% @tickets.each do |ticket| %>
-      <tr>
-        <td><%= ticket.id %></td>
-        <td><%= link_to ticket.subject, ticket %></td>
-        <td><%= ticket.requester_email %></td>
-        <td><%= priority_label(ticket.priority) %></td>
-        <td><%= status_chip(ticket.status) %></td>
-        <td><%= ticket.assignee&.email_address || "—" %></td>
-        <td><%= sla_badge(ticket) %></td>
-      </tr>
-    <% end %>
-  </tbody>
-</table>
+<nav class="pulse" aria-label="Kuyruk özeti">
+  <%= link_to tickets_path(filter: "awaiting"), class: ("is-current" if @filter == "awaiting") do %>
+    <span class="value num"><%= Ticket.awaiting_first_response.count %></span><span class="label">Yanıt bekleyen</span>
+  <% end %>
+  <%= link_to tickets_path(filter: "sla_breached"), class: [ "is-red", ("is-current" if @filter == "sla_breached") ] do %>
+    <span class="value num"><%= Ticket.sla_breached.count %></span><span class="label">SLA'sı geçen</span>
+  <% end %>
+  <%= link_to tickets_path(filter: "on_hold"), class: [ "is-amber", ("is-current" if @filter == "on_hold") ] do %>
+    <span class="value num"><%= Ticket.where(status: "on_hold").count %></span><span class="label">3. taraf bekleniyor</span>
+  <% end %>
+  <%= link_to tickets_path(filter: "solved_today"), class: ("is-current" if @filter == "solved_today") do %>
+    <span class="value num"><%= Ticket.where(solved_at: Time.current.all_day).count %></span><span class="label">Bugün çözülen</span>
+  <% end %>
+</nav>
 
-<% if @tickets.empty? %>
-  <p class="muted">Bu listede talep yok.</p>
-<% end %>
+<ul class="queue">
+  <li class="queue-head" aria-hidden="true">
+    <span>No</span><span>Konu ve talep sahibi</span><span>Durum</span><span>Öncelik</span><span>Atanan</span><span>İlk yanıt süresi</span>
+  </li>
+  <% @tickets.each do |ticket| %>
+    <% info = sla_info(ticket) %>
+    <li>
+      <%= link_to ticket, class: "queue-row sla-#{info[:state]}" do %>
+        <span class="id num">#<%= ticket.id %></span>
+        <span>
+          <span class="subject"><%= ticket.subject %></span>
+          <span class="requester"><%= ticket.requester_email %></span>
+        </span>
+        <span><%= status_chip(ticket.status) %></span>
+        <span><%= priority_tag(ticket.priority) %></span>
+        <span class="assignee"><%= ticket.assignee&.email_address || "Atanmadı" %></span>
+        <%= sla_meter(ticket, info: info) %>
+      <% end %>
+    </li>
+  <% end %>
+  <% if @tickets.empty? %>
+    <li class="empty">Bu listede talep yok.</li>
+  <% end %>
+</ul>

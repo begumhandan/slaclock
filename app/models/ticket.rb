@@ -79,7 +79,8 @@ class Ticket < ApplicationRecord
       sla_pauses.ongoing.update_all(ended_at: Time.current) if status == "on_hold"
 
       # Ilk yanit verildiyse SLA sonuclanmistir; sonraki beklemeler son tarihi degistirmez.
-      due_at = first_responded_at ? first_response_due_at : SlaClock.new(self).compute.due_at
+      # (Beklemedeyken yanit verildiyse son tarih henuz yazilmamistir; o zaman bir kez hesaplanir.)
+      due_at = first_responded_at && first_response_due_at ? first_response_due_at : SlaClock.new(self).compute.due_at
       attributes = { status: target, status_changed_at: Time.current, first_response_due_at: due_at }
       attributes[:solved_at] = Time.current if target == "solved"
       attributes[:solved_at] = nil if status == "solved" && target == "open"

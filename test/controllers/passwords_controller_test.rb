@@ -60,6 +60,20 @@ class PasswordsControllerTest < ActionDispatch::IntegrationTest
     assert_notice "Şifreler eşleşmedi"
   end
 
+  test "kapaliyken sifre sifirlama sayfasi acilmaz ve e-posta gonderilmez" do
+    Rails.configuration.x.password_reset_enabled = false
+
+    get new_password_path
+    assert_redirected_to new_session_path
+
+    post passwords_path, params: { email_address: @user.email_address }
+    assert_enqueued_emails 0
+    follow_redirect!
+    assert_notice "Şifre sıfırlama bu sürümde kapalı"
+  ensure
+    Rails.configuration.x.password_reset_enabled = true
+  end
+
   private
     def assert_notice(text)
       assert_select "div", /#{text}/

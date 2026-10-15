@@ -1,5 +1,6 @@
 class PasswordsController < ApplicationController
   allow_unauthenticated_access
+  before_action :require_password_reset_enabled
   before_action :set_user_by_token, only: %i[ edit update ]
   rate_limit to: 10, within: 3.minutes, only: :create, with: -> { redirect_to new_password_path, alert: "Çok fazla deneme yaptınız, birkaç dakika sonra tekrar deneyin." }
 
@@ -27,6 +28,13 @@ class PasswordsController < ApplicationController
   end
 
   private
+    # Canlida e-posta gonderilemedigi icin kapali (bkz. README Yapamadiklarim). Acmak: config.x.password_reset_enabled
+    def require_password_reset_enabled
+      return if Rails.configuration.x.password_reset_enabled
+
+      redirect_to new_session_path, alert: "Şifre sıfırlama bu sürümde kapalı. Yeni şifre için yöneticiye başvurun."
+    end
+
     def set_user_by_token
       @user = User.find_by_password_reset_token!(params[:token])
     rescue ActiveSupport::MessageVerifier::InvalidSignature

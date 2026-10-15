@@ -74,7 +74,7 @@ pending / solved ──(müşteri yanıtı, gizli linkten)──▶ open
 | SLA hesabının kendisi | `app/services/sla_clock.rb` |
 | "Pending 3 günde otomatik çözülsün" | `app/models/ticket.rb` (`PENDING_AUTO_SOLVE_AFTER`) |
 | "Çözülen talep 2 günde kapansın" | `app/models/ticket.rb` (`SOLVED_AUTO_CLOSE_AFTER`) |
-| Zaman kurallarını kim çalıştırır? | `app/jobs/time_rules_job.rb` + `TicketsController#index` |
+| Zaman kurallarını kim çalıştırır? | Canlıda `TicketsController#index` (temsilci listeyi açınca). `app/jobs/time_rules_job.rb` yazılı ama zamanlanmadı (Render ücretsiz planı uyuyor; bkz. README Yapamadıklarım) |
 | Müşteri sayfası (gizli link `/t/:token`) | `app/controllers/customer_tickets_controller.rb`, `app/views/customer_tickets/show.html.erb` |
 | "Müşteri yanıt verince talep açılmasın" | `app/models/ticket.rb` (`CUSTOMER_REPLY_REOPENS`, `add_customer_reply!`) |
 | Müşteri hangi durum adlarını görür? | `app/helpers/customer_tickets_helper.rb` (`CUSTOMER_STATUS_LABELS`) |

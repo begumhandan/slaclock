@@ -40,20 +40,25 @@ class TicketTest < ActiveSupport::TestCase
     assert_not tickets(:new_ticket).respond_to?(:solved!)
   end
 
-  # Yasak gecisler: her biri ayri test, durum degismeden kalmali.
-  {
-    new_ticket: %w[pending on_hold solved closed],
-    open_ticket: %w[new closed],
-    closed_ticket: %w[new open pending on_hold solved]
-  }.each do |fixture, targets|
-    targets.each do |target|
-      test "yasak gecis: #{fixture} -> #{target}" do
-        ticket = tickets(fixture)
-        before = ticket.status
+  # Yasak gecisler TRANSITIONS tablosundan uretilir: tabloda olmayan HER gecisin ayri testi var.
+  # Tablo degisirse testler de kendiliginden degisir (bkz. AGENT.md, "Her yasak gecisin bir testi vardir").
+  STATUSES = Ticket.statuses.keys
 
-        assert_raises(Ticket::InvalidTransition) { ticket.transition_to!(target) }
-        assert_equal before, ticket.reload.status
+  STATUSES.each do |from|
+    (STATUSES - [ from ] - Ticket::TRANSITIONS.fetch(from)).each do |to|
+      test "yasak gecis: #{from} -> #{to}" do
+        ticket = Ticket.create!(subject: "Yasak gecis", requester_email: "a@example.com")
+        ticket.update_columns(status: Ticket.statuses.fetch(from))
+
+        assert_raises(Ticket::InvalidTransition) { ticket.transition_to!(to) }
+        assert_equal from, ticket.reload.status
       end
     end
+  end
+
+  test "yasak gecis sayisi tabloyla tutarli" do
+    allowed = Ticket::TRANSITIONS.values.sum(&:size)
+    assert_equal 9, allowed
+    assert_equal 21, STATUSES.size * (STATUSES.size - 1) - allowed
   end
 end

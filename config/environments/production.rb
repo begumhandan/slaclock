@@ -65,6 +65,9 @@ Rails.application.configure do
   config.action_mailer.delivery_method = :resend
   config.action_mailer.raise_delivery_errors = true
 
+  # Resend canlidaki API anahtarini reddetti; e-posta gidemedigi icin sifre sifirlama kapali (bkz. README).
+  config.x.password_reset_enabled = false
+
   # Specify outgoing SMTP server. Remember to add smtp/* credentials via bin/rails credentials:edit.
   # config.action_mailer.smtp_settings = {
   #   user_name: Rails.application.credentials.dig(:smtp, :user_name),

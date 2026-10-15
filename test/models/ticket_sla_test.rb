@@ -26,6 +26,28 @@ class TicketSlaTest < ActiveSupport::TestCase
     assert_equal Time.zone.local(2026, 10, 19, 17, 0), ticket.first_response_due_at
   end
 
+  test "beklemedeyken yanit verilip acilan talepte son tarih bos kalmaz" do
+    ticket = create_ticket(:high, at: Time.zone.local(2026, 10, 19, 9, 0)) # Pazartesi 09:00, hedef 4 sa
+    travel_to(Time.zone.local(2026, 10, 19, 9, 0)) { ticket.transition_to!(:open) }
+    travel_to(Time.zone.local(2026, 10, 19, 10, 0)) { ticket.transition_to!(:on_hold) }
+    travel_to(Time.zone.local(2026, 10, 19, 11, 0)) { ticket.add_reply!(author: users(:one), body: "Kargoya sorduk") }
+
+    travel_to(Time.zone.local(2026, 10, 19, 12, 0)) { ticket.transition_to!(:open) }
+
+    ticket.reload
+    # 1 sa harcandi, 10:00-12:00 bekleme sayilmadi: 12:00 + 3 sa
+    assert_equal Time.zone.local(2026, 10, 19, 15, 0), ticket.first_response_due_at
+    assert_equal :met, ticket.sla_state
+    assert_equal ticket.first_response_due_at, SlaClock.new(ticket).compute.due_at
+  end
+
+  test "ana sayfadaki ornek: yilbasi ve hafta sonu sayilmaz" do
+    ticket = create_ticket(:high, at: Time.zone.local(2026, 12, 31, 17, 0)) # Persembe 17:00, hedef 4 sa
+
+    # Persembe 1 sa + 1 Ocak (Cuma) Yilbasi + hafta sonu + Pazartesi 09:00'dan 3 sa
+    assert_equal Time.zone.local(2027, 1, 4, 12, 0), ticket.first_response_due_at
+  end
+
   test "on_hold'da sayac durur, acilinca kalan sureden devam eder" do
     ticket = create_ticket(:high, at: Time.zone.local(2026, 10, 19, 9, 0)) # Pazartesi 09:00 -> 13:00
     travel_to(Time.zone.local(2026, 10, 19, 9, 0)) { ticket.transition_to!(:open) }

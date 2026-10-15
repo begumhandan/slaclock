@@ -23,6 +23,9 @@ module Slaclock
     #
     # Ekranda gosterilen saatler Turkiye saati.
     config.time_zone = "Istanbul"
+
+    # Sifre sifirlama e-postasi canlida gonderilemiyor (production.rb'de kapali, bkz. README).
+    config.x.password_reset_enabled = true
     config.i18n.default_locale = :tr
     config.i18n.available_locales = %i[tr en]
     # config.eager_load_paths << Rails.root.join("extras")

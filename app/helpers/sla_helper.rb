@@ -17,12 +17,14 @@ module SlaHelper
   end
 
   def sla_badge(ticket)
-    case ticket.sla_state
+    state = ticket.sla_state
+    text = case state
     when :met then "✅ Zamanında yanıtlandı"
     when :breached then "🔴 SLA ihlali"
-    when :paused then "⏸ Durdu (3. taraf bekleniyor)"
+    when :paused then "⏸ Durdu (3. taraf)"
     else ticket.first_response_due_at ? "⏱ #{tr_time(ticket.first_response_due_at)}" : "—"
     end
+    tag.span(text, class: "chip chip-#{state}")
   end
 
   def sla_step_text(step)

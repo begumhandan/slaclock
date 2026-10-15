@@ -1,9 +1,9 @@
 <h1>Talepler</h1>
 
-<p>
-  <%= link_to "Tümü", tickets_path %> |
+<div class="filters">
+  <%= link_to "Tümü", tickets_path %>
   <%= link_to "Sadece SLA'sı geçmiş olanlar", tickets_path(filter: "sla_breached") %>
-</p>
+</div>
 
 <table>
   <thead>
@@ -15,7 +15,6 @@
       <th>Durum</th>
       <th>Atanan</th>
       <th>İlk yanıt SLA</th>
-      <th>Oluşturulma</th>
     </tr>
   </thead>
   <tbody>
@@ -25,15 +24,14 @@
         <td><%= link_to ticket.subject, ticket %></td>
         <td><%= ticket.requester_email %></td>
         <td><%= priority_label(ticket.priority) %></td>
-        <td><%= status_label(ticket.status) %></td>
+        <td><%= status_chip(ticket.status) %></td>
         <td><%= ticket.assignee&.email_address || "—" %></td>
         <td><%= sla_badge(ticket) %></td>
-        <td><%= l(ticket.created_at, format: :short) %></td>
       </tr>
     <% end %>
   </tbody>
 </table>
 
 <% if @tickets.empty? %>
-  <p>Henüz talep yok.</p>
+  <p class="muted">Bu listede talep yok.</p>
 <% end %>

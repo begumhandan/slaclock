@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
   <head>
     <title><%= content_for(:title) || "SLA Clock" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -20,18 +20,30 @@
   </head>
 
   <body>
-    <nav>
-      <%= link_to "SLA Clock", root_path %> |
-      <%= link_to "Talep aç", new_ticket_path %>
-      <% if authenticated? %>
-        | <%= link_to "Talepler", tickets_path %>
+    <header class="topbar">
+      <%= link_to root_path, class: "brand" do %>
+        <%= render "shared/logo" %> SLA Clock
       <% end %>
-    </nav>
+      <nav>
+        <%= link_to "Talep aç", new_ticket_path %>
+        <% if authenticated? %>
+          <%= link_to "Talepler", tickets_path %>
+        <% end %>
+      </nav>
+      <div class="user">
+        <% if authenticated? %>
+          <%= Current.user.email_address %>
+          <%= button_to "Çıkış", session_path, method: :delete, class: "button-secondary" %>
+        <% else %>
+          <%= link_to "Temsilci girişi", new_session_path %>
+        <% end %>
+      </div>
+    </header>
 
-    <% if notice %><p style="color: green"><%= notice %></p><% end %>
-    <% if alert %><p style="color: red"><%= alert %></p><% end %>
+    <main class="container">
+      <% if notice %><div class="flash flash-notice"><%= notice %></div><% end %>
+      <% if alert %><div class="flash flash-alert"><%= alert %></div><% end %>
 
-    <main>
       <%= yield %>
     </main>
   </body>

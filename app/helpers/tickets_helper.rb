@@ -17,4 +17,8 @@ module TicketsHelper
 
   def status_label(status) = STATUS_LABELS.fetch(status.to_s, status.to_s)
   def priority_label(priority) = PRIORITY_LABELS.fetch(priority.to_s, priority.to_s)
+
+  def status_chip(status)
+    tag.span(status_label(status), class: "chip chip-status-#{status}")
+  end
 end

@@ -1,68 +1,70 @@
-<h1>#<%= @ticket.id %> <%= @ticket.subject %></h1>
+<p><%= link_to "← Talepler", tickets_path %></p>
+<h1>#<%= @ticket.id %> <%= @ticket.subject %> <%= status_chip(@ticket.status) %></h1>
 
-<p><strong>Talep sahibi:</strong> <%= @ticket.requester_email %></p>
-<p><strong>Öncelik:</strong> <%= priority_label(@ticket.priority) %></p>
-<p><strong>Durum:</strong> <%= status_label(@ticket.status) %></p>
-<p><strong>Atanan:</strong> <%= @ticket.assignee&.email_address || "—" %></p>
-<p><strong>Oluşturulma:</strong> <%= l(@ticket.created_at, format: :short) %></p>
-<p><strong>İlk yanıt:</strong> <%= @ticket.first_responded_at ? l(@ticket.first_responded_at, format: :short) : "Henüz yanıt verilmedi" %></p>
-<% if @ticket.solved_at %>
-  <p><strong>Çözülme:</strong> <%= l(@ticket.solved_at, format: :short) %></p>
-<% end %>
-<% if @ticket.auto_solve_at %>
-  <p><strong>Otomatik çözülme:</strong> Müşteri yanıt vermezse <%= tr_time(@ticket.auto_solve_at) %></p>
-<% end %>
-<% if @ticket.auto_close_at %>
-  <p><strong>Otomatik kapanma:</strong> <%= tr_time(@ticket.auto_close_at) %></p>
-<% end %>
+<section class="card meta">
+  <div>Talep sahibi <strong><%= @ticket.requester_email %></strong></div>
+  <div>Öncelik <strong><%= priority_label(@ticket.priority) %></strong></div>
+  <div>Atanan <strong><%= @ticket.assignee&.email_address || "—" %></strong></div>
+  <div>Oluşturulma <strong><%= tr_time(@ticket.created_at) %></strong></div>
+  <div>İlk yanıt <strong><%= @ticket.first_responded_at ? tr_time(@ticket.first_responded_at) : "Henüz yok" %></strong></div>
+  <% if @ticket.solved_at %>
+    <div>Çözülme <strong><%= tr_time(@ticket.solved_at) %></strong></div>
+  <% end %>
+  <% if @ticket.auto_solve_at %>
+    <div>Otomatik çözülme <strong><%= tr_time(@ticket.auto_solve_at) %></strong></div>
+  <% end %>
+  <% if @ticket.auto_close_at %>
+    <div>Otomatik kapanma <strong><%= tr_time(@ticket.auto_close_at) %></strong></div>
+  <% end %>
+</section>
 
 <%= render "sla_panel", ticket: @ticket %>
 
+<h2>İşlemler</h2>
+<div class="actions">
+  <% if @ticket.assignee != Current.user %>
+    <%= button_to "Bana ata", assign_to_me_ticket_path(@ticket), method: :patch %>
+  <% end %>
+  <% @ticket.allowed_transitions.each do |target| %>
+    <%= button_to "→ #{status_label(target)}", transition_ticket_path(@ticket, to: target), method: :patch, form_class: "button-secondary" %>
+  <% end %>
+  <% if @ticket.allowed_transitions.empty? %>
+    <span class="muted">Bu talep kapandı; başka işlem yapılamaz.</span>
+  <% end %>
+</div>
+
 <% if @ticket.body.present? %>
   <h2>Açıklama</h2>
-  <%= simple_format(@ticket.body) %>
+  <div class="card"><%= simple_format(@ticket.body) %></div>
 <% end %>
 
 <h2>Yanıtlar</h2>
 <% @ticket.comments.chronological.includes(:author).each do |comment| %>
-  <div style="border-left: 4px solid <%= comment.internal ? "#d4a017" : "#2a7ae2" %>; padding-left: 8px; margin-bottom: 12px;">
+  <div class="comment <%= "internal" if comment.internal %>">
     <small>
       <%= comment.author&.email_address || @ticket.requester_email %> ·
-      <%= l(comment.created_at, format: :short) %>
+      <%= tr_time(comment.created_at) %>
       <%= "· İç not" if comment.internal %>
     </small>
     <%= simple_format(comment.body) %>
   </div>
 <% end %>
 <% if @ticket.comments.empty? %>
-  <p>Henüz yanıt yok.</p>
+  <p class="muted">Henüz yanıt yok.</p>
 <% end %>
 
 <% unless @ticket.status == "closed" %>
-  <%= form_with model: [ @ticket, Comment.new ] do |form| %>
-    <p>
-      <%= form.label :body, "Yanıtınız" %><br>
-      <%= form.text_area :body, rows: 4, required: true %>
-    </p>
-    <p>
-      <%= form.check_box :internal %>
-      <%= form.label :internal, "İç not (müşteri görmez, ilk yanıt sayılmaz)" %>
-    </p>
-    <%= form.submit "Yanıtı gönder" %>
-  <% end %>
+  <div class="card form-narrow">
+    <%= form_with model: [ @ticket, Comment.new ] do |form| %>
+      <p>
+        <%= form.label :body, "Yanıtınız" %><br>
+        <%= form.text_area :body, rows: 4, required: true %>
+      </p>
+      <p>
+        <%= form.check_box :internal %>
+        <%= form.label :internal, "İç not (müşteri görmez, ilk yanıt sayılmaz)" %>
+      </p>
+      <%= form.submit "Yanıtı gönder" %>
+    <% end %>
+  </div>
 <% end %>
-
-<h2>İşlemler</h2>
-<% if @ticket.assignee != Current.user %>
-  <%= button_to "Bana ata", assign_to_me_ticket_path(@ticket), method: :patch %>
-<% end %>
-
-<% @ticket.allowed_transitions.each do |target| %>
-  <%= button_to "→ #{status_label(target)}", transition_ticket_path(@ticket, to: target), method: :patch %>
-<% end %>
-
-<% if @ticket.allowed_transitions.empty? %>
-  <p>Bu talep kapandı; başka işlem yapılamaz.</p>
-<% end %>
-
-<p><%= link_to "← Talepler", tickets_path %></p>

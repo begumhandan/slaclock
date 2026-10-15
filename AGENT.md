@@ -37,7 +37,7 @@ ekibin iş takvimine (mesai, tatil, saat dilimi) göre hesaplanır ve neden o sa
 new ──▶ open ──▶ pending ──▶ open
           │──▶ on_hold ──▶ open
           └──▶ solved ──▶ closed
-solved ──(müşteri yanıtı)──▶ open
+pending / solved ──(müşteri yanıtı, gizli linkten)──▶ open
 ```
 
 - Geçişler YALNIZCA `Ticket#transition_to!(yeni_durum)` üzerinden yapılır.
@@ -75,6 +75,9 @@ solved ──(müşteri yanıtı)──▶ open
 | "Pending 3 günde otomatik çözülsün" | `app/models/ticket.rb` (`PENDING_AUTO_SOLVE_AFTER`) |
 | "Çözülen talep 2 günde kapansın" | `app/models/ticket.rb` (`SOLVED_AUTO_CLOSE_AFTER`) |
 | Zaman kurallarını kim çalıştırır? | `app/jobs/time_rules_job.rb` + `TicketsController#index` |
+| Müşteri sayfası (gizli link `/t/:token`) | `app/controllers/customer_tickets_controller.rb`, `app/views/customer_tickets/show.html.erb` |
+| "Müşteri yanıt verince talep açılmasın" | `app/models/ticket.rb` (`CUSTOMER_REPLY_REOPENS`, `add_customer_reply!`) |
+| Müşteri hangi durum adlarını görür? | `app/helpers/customer_tickets_helper.rb` (`CUSTOMER_STATUS_LABELS`) |
 
 ## 7. Konvansiyondan sapmalar (neden?)
 

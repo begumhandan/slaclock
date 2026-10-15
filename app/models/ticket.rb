@@ -26,6 +26,10 @@ class Ticket < ApplicationRecord
   PENDING_AUTO_SOLVE_AFTER = 7.days # musteri bu kadar yanit vermezse talep cozulur
   SOLVED_AUTO_CLOSE_AFTER = 4.days # cozulen talep bu kadar sonra kapanir
 
+  # Musteri gizli linkten yanit yazinca bu durumlardaki talep yeniden "open" olur.
+  # Kod yeri: "Musteri yanit verince talep acilmasin" -> sadece bu liste.
+  CUSTOMER_REPLY_REOPENS = %w[pending solved].freeze
+
   # instance_methods: false -> solved! gibi korumasiz bang metotlari URETILMEZ.
   # Durum yalnizca transition_to! ile degisir. (Rails enum'u bir durum makinesi degildir.)
   enum :status, { new: 0, open: 1, pending: 2, on_hold: 3, solved: 4, closed: 5 },
@@ -35,6 +39,9 @@ class Ticket < ApplicationRecord
   belongs_to :assignee, class_name: "User", optional: true
   has_many :comments, dependent: :destroy
   has_many :sla_pauses, dependent: :destroy
+
+  # Turetilmis alan: musterinin gizli linkindeki tahmin edilemeyen anahtar (/t/:access_token).
+  has_secure_token :access_token
 
   # Turetilmis alan: ilk yanit son tarihi (SlaClock hesaplar). AGENT.md: callback yalnizca turetilmis alan icin.
   before_create { self.first_response_due_at = SlaClock.new(self).compute.due_at }
@@ -144,6 +151,18 @@ class Ticket < ApplicationRecord
         update!(first_responded_at: comment.created_at) if first_responded_at.nil?
       end
 
+      comment
+    end
+  end
+
+  # Musteri yaniti (gizli linkten gelir, yazari yoktur). Ilk yanit SLA'sini etkilemez.
+  # Musteri bekleniyorsa ya da talep cozulmusse talep yeniden acilir (bkz. AGENT.md durum akisi).
+  def add_customer_reply!(body:)
+    raise InvalidTransition, "Kapalı talebe yanıt yazılamaz. Yeni bir talep açabilirsiniz." if closed?
+
+    transaction do
+      comment = comments.create!(author: nil, body: body, internal: false)
+      transition_to!(:open) if status.in?(CUSTOMER_REPLY_REOPENS)
       comment
     end
   end

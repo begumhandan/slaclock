@@ -3,12 +3,14 @@ new_ticket:
   requester_email: ayse@example.com
   priority: normal
   status: new
+  access_token: musteriLinkiYeniTalep0001
 
 open_ticket:
   subject: Sifremi sifirlayamiyorum
   requester_email: mehmet@example.com
   priority: high
   status: open
+  access_token: musteriLinkiAcikTalep0002
   assignee: one
 
 closed_ticket:
@@ -16,3 +18,5 @@ closed_ticket:
   requester_email: eski@example.com
   priority: low
   status: closed
+  access_token: musteriLinkiKapaliTalep03
+

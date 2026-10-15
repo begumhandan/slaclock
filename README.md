@@ -114,8 +114,7 @@ Windows'ta komutların başına `ruby` ekleyin (`ruby bin/rails server`). Window
 
 ## Yapamadıklarım
 
-- **E-posta kanalı yok.** Talepler yalnızca web formundan geliyor; müşteri e-postayla yanıt veremiyor. Bu yüzden "müşteri yanıt verince pending → open" geçişini temsilci elle yapıyor.
-- **Müşteri portalı yok.** Müşteri talebinin durumunu ve yanıtları göremiyor.
+- **E-posta kanalı yok.** Talepler yalnızca web formundan geliyor ve müşteriye e-posta bildirimi gitmiyor. Bunun yerine talebi açan müşteri, kendisine özel, tahmin edilemeyen bir linke (`/t/:token`) yönlendiriliyor: talebin durumunu ve ekibin yanıtlarını orada görüyor (iç notları görmüyor), oradan yanıt yazıyor. Yanıtı "müşteri bekleniyor" ya da "çözüldü" durumundaki talebi otomatik olarak yeniden açıyor. Eksik olan: müşteri yeni yanıt geldiğini kendiliğinden öğrenmiyor, sayfaya kendisi bakması gerekiyor; linki kaybederse talebe ulaşamıyor.
 - **Ekip başına farklı saat dilimi yok.** SLA, tek bir iş takvimine (İstanbul, Pzt–Cuma 09:00–18:00) göre hesaplanıyor. Yorumdaki "birden çok saat dilimi" acısının yalnızca ilk adımını çözdüm: hesap saat dilimine ve tatile göre doğru ve açıklanabilir, ama ekip veya marka başına ayrı takvim seçilemiyor.
 - **Dini bayramlar ve arife yarım günleri takvimde yok.** Yalnızca sabit tarihli resmi tatiller seed ile ekleniyor; tatil arayüzden eklenemiyor.
 - **Yalnızca ilk yanıt SLA'sı var.** "Sonraki yanıt süresi" ve "çözüm süresi" SLA'ları yok.

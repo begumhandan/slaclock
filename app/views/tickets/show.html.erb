@@ -20,13 +20,14 @@
     </article>
 
     <% @ticket.comments.chronological.includes(:author).each do |comment| %>
-      <article class="message <%= comment.internal ? "internal" : "agent" %>">
+      <article class="message <%= comment.internal ? "internal" : (comment.from_customer? ? "customer" : "agent") %>">
         <div class="avatar" aria-hidden="true"><%= initials(comment.author&.email_address || @ticket.requester_email) %></div>
         <div class="bubble">
           <div class="bubble-head">
             <strong><%= comment.author&.email_address || @ticket.requester_email %></strong>
             <span><%= tr_time(comment.created_at) %></span>
             <% if comment.internal %><span>İç not, müşteri görmez</span><% end %>
+            <% if comment.from_customer? %><span>Müşteri yanıtı</span><% end %>
           </div>
           <%= simple_format(comment.body) %>
         </div>
@@ -67,6 +68,9 @@
       </div>
       <dl class="props" style="margin-top: 16px;">
         <dt>Atanan</dt><dd><%= @ticket.assignee&.email_address || "Atanmadı" %></dd>
+        <% if @ticket.access_token %>
+          <dt>Müşteri sayfası</dt><dd><%= link_to "Müşterinin gördüğü sayfa ↗", customer_ticket_path(@ticket.access_token), target: "_blank", rel: "noopener" %></dd>
+        <% end %>
         <% if @ticket.solved_at %><dt>Çözülme</dt><dd><%= tr_time(@ticket.solved_at) %></dd><% end %>
         <% if @ticket.auto_solve_at %><dt>Otomatik çözülme</dt><dd><%= tr_time(@ticket.auto_solve_at) %></dd><% end %>
         <% if @ticket.auto_close_at %><dt>Otomatik kapanma</dt><dd><%= tr_time(@ticket.auto_close_at) %></dd><% end %>

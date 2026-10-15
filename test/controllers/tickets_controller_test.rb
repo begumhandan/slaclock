@@ -11,8 +11,9 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
       post tickets_url, params: { ticket: { subject: "Yardim", requester_email: "a@example.com", priority: "high" } }
     end
 
-    assert_redirected_to root_url
-    assert_equal "new", Ticket.last.status
+    ticket = Ticket.last
+    assert_redirected_to customer_ticket_url(ticket.access_token)
+    assert_equal "new", ticket.status
   end
 
   test "eksik bilgili talep kaydedilmez" do

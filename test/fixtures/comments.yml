@@ -3,3 +3,9 @@ open_ticket_reply:
   author: one
   body: Merhaba, sifre sifirlama linkini tekrar gonderdik.
   internal: false
+
+open_ticket_internal_note:
+  ticket: open_ticket
+  author: one
+  body: Gizli ic not, musteri gormemeli.
+  internal: true

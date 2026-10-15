@@ -13,7 +13,10 @@ module ActiveSupport
     fixtures :all
 
     # Talep formu istek siniri testler arasinda birikmesin.
-    setup { TicketsController::RATE_LIMIT_STORE.clear }
+    setup do
+      TicketsController::RATE_LIMIT_STORE.clear
+      CustomerTicketsController::REPLY_LIMIT_STORE.clear
+    end
 
     # Add more helper methods to be used by all tests here...
   end

@@ -34,7 +34,8 @@ class TicketsController < ApplicationController
     @ticket = Ticket.new(ticket_params)
 
     if @ticket.save
-      redirect_to root_path, notice: "Talebiniz alındı. Talep numaranız: ##{@ticket.id}"
+      redirect_to customer_ticket_path(@ticket.access_token),
+                  notice: "Talebiniz alındı (##{@ticket.id}). Bu sayfanın linkini saklayın: yanıtlarımızı burada göreceksiniz."
     else
       render :new, status: :unprocessable_content
     end

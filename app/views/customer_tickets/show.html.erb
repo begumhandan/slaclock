@@ -1,0 +1,63 @@
+<% content_for :title, "Talep ##{@ticket.id} · SLA Clock" %>
+<% content_for :head do %>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+<% end %>
+
+<div class="customer-ticket">
+  <div class="ticket-title">
+    <h1><%= @ticket.subject %></h1>
+    <%= customer_status_chip(@ticket.status) %>
+  </div>
+  <div class="ticket-sub">
+    <span class="num">#<%= @ticket.id %></span>
+    <span><%= @ticket.requester_email %></span>
+    <span><%= tr_time(@ticket.created_at) %></span>
+  </div>
+
+  <p class="panel status-note"><%= customer_status_note(@ticket) %></p>
+
+  <section aria-label="Yazışma">
+    <article class="message customer">
+      <div class="avatar" aria-hidden="true"><%= initials(@ticket.requester_email) %></div>
+      <div class="bubble">
+        <div class="bubble-head"><strong>Siz</strong><span><%= tr_time(@ticket.created_at) %></span></div>
+        <%= @ticket.body.present? ? simple_format(@ticket.body) : tag.p("Açıklama yazılmadı.", class: "muted") %>
+      </div>
+    </article>
+
+    <% @comments.each do |comment| %>
+      <article class="message <%= comment.from_customer? ? "customer" : "agent" %>">
+        <div class="avatar" aria-hidden="true"><%= comment.from_customer? ? initials(@ticket.requester_email) : "DE" %></div>
+        <div class="bubble">
+          <div class="bubble-head">
+            <strong><%= comment.from_customer? ? "Siz" : "Destek ekibi" %></strong>
+            <span><%= tr_time(comment.created_at) %></span>
+          </div>
+          <%= simple_format(comment.body) %>
+        </div>
+      </article>
+    <% end %>
+
+    <% if @ticket.closed? %>
+      <p class="muted"><%= link_to "Yeni talep aç", new_ticket_path %></p>
+    <% else %>
+      <div class="panel composer">
+        <%= form_with url: customer_ticket_reply_path(@ticket.access_token), scope: :reply do |form| %>
+          <%= form.label :body, "Yanıt yaz", class: "muted" %>
+          <%= form.text_area :body, rows: 4, required: true, maxlength: 10_000, placeholder: "Ekibe yanıtınız…" %>
+          <div class="composer-foot">
+            <span class="muted">Yanıtınız talebe eklenir ve ekibe iletilir.</span>
+            <%= form.submit "Yanıtı gönder" %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </section>
+
+  <div class="panel private-link">
+    <strong>Bu sayfa size özel.</strong>
+    <span class="muted">Linki kaydedin; talebinizi ve yanıtlarımızı buradan takip edersiniz. Linki bilen herkes bu sayfayı görebilir, paylaşmayın.</span>
+    <input type="text" readonly value="<%= customer_ticket_url(@ticket.access_token) %>" aria-label="Talep sayfanızın linki">
+  </div>
+</div>

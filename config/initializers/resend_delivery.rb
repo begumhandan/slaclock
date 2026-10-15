@@ -39,5 +39,5 @@ class ResendDelivery
 end
 
 ActiveSupport.on_load(:action_mailer) do
-  add_delivery_method :resend, ResendDelivery, api_key: ENV["RESEND_API_KEY"]
+  add_delivery_method :resend, ResendDelivery, api_key: ENV["RESEND_API_KEY"].to_s.strip
 end

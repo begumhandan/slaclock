@@ -1,12 +1,5 @@
 module TicketsHelper
-  STATUS_LABELS = {
-    "new" => "Yeni",
-    "open" => "Açık",
-    "pending" => "Müşteri bekleniyor",
-    "on_hold" => "Beklemede (3. taraf)",
-    "solved" => "Çözüldü",
-    "closed" => "Kapandı"
-  }.freeze
+  STATUS_LABELS = Ticket::STATUS_LABELS
 
   PRIORITY_LABELS = {
     "low" => "Düşük",

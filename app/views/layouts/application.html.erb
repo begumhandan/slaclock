@@ -31,7 +31,10 @@
           <% end %>
           <nav aria-label="Temsilci menüsü">
             <%= link_to tickets_path, class: ("is-active" if controller_name == "tickets" && action_name != "new" && params[:filter].blank?) do %>
-              Kuyruk <span class="count"><%= Ticket.awaiting_first_response.count %></span>
+              Tüm talepler
+            <% end %>
+            <%= link_to tickets_path(filter: "awaiting"), class: ("is-active" if params[:filter] == "awaiting") do %>
+              Yanıt bekleyenler <span class="count"><%= Ticket.awaiting_first_response.count %></span>
             <% end %>
             <%= link_to tickets_path(filter: "sla_breached"), class: ("is-active" if params[:filter] == "sla_breached") do %>
               SLA'sı geçenler <span class="count count-red"><%= Ticket.sla_breached.count %></span>

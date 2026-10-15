@@ -6,7 +6,7 @@ class CommentsController < ApplicationController
       body: comment_params[:body],
       internal: comment_params[:internal] == "1"
     )
-    redirect_to @ticket, notice: "Yanit eklendi."
+    redirect_to @ticket, notice: "Yanıt eklendi."
   rescue ActiveRecord::RecordInvalid => e
     redirect_to @ticket, alert: e.record.errors.full_messages.to_sentence
   rescue Ticket::InvalidTransition => e

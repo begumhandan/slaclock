@@ -97,7 +97,7 @@ Varsayımlar:
 ## Testler
 
 ```bash
-bin/rails test     # 64 test: durum akışı, 11 yasak geçiş, SLA (travel_to), zaman kuralları, ekranlar
+bin/rails test     # 80+ test: durum akışı, yasak geçişler, SLA (travel_to), zaman kuralları, ekranlar, güvenlik
 bin/rubocop
 ```
 
@@ -121,7 +121,7 @@ Windows'ta komutların başına `ruby` ekleyin (`ruby bin/rails server`). Window
 - **Yalnızca ilk yanıt SLA'sı var.** "Sonraki yanıt süresi" ve "çözüm süresi" SLA'ları yok.
 - **Öncelik sonradan değiştirilemiyor.** Talep açılırken seçiliyor; değişseydi SLA'nın yeniden hesaplanması gerekirdi.
 - **Zamanlanmış iş çalışmıyor.** Render ücretsiz planı uygulamayı 15 dakika sonra uyutuyor. Otomatik çözme ve kapanma kuralları `TimeRulesJob` olarak yazıldı, ama canlıda temsilci talep listesini açtığında uygulanıyor.
-- **Şifre sıfırlama e-postası yalnızca hesap sahibinin adresine gidiyor.** Render ücretsiz planı SMTP portlarını kapattığı için e-posta Resend'in HTTPS API'si ile gönderiliyor. Kendi alan adımızı doğrulamadığımız için Resend yalnızca Resend hesabının sahibine (temsilcinin kendi adresine) e-posta iletiyor.
+- **Şifre sıfırlama canlıda çalışmıyor, bu yüzden "Şifremi unuttum" linki gizlendi.** Render'ın ücretsiz planı SMTP portlarını kapattığı için e-postayı Resend'in HTTPS API'si ile gönderecek kodu yazdım (`config/initializers/resend_delivery.rb`, testli). E-posta hazırlanıp Resend'e ulaşıyor, ama Resend canlıdaki API anahtarını `401 API key is invalid` diyerek reddetti; birkaç denemede çözemedim. Anahtar düzeltilince link `app/views/sessions/new.html.erb` içinde tek satırla geri açılabilir.
 - **Temsilci yönetimi yok.** Temsilci hesabı seed ile oluşturuluyor; arayüzden kayıt veya ekip yönetimi yok.
 - **Tarayıcı (system) testleri yok.** CI'da model ve controller testleri çalışıyor.
 - **Ücretsiz altyapı sınırları:** İlk istekte uyanma gecikmesi var ve Render'ın ücretsiz veritabanının süresi sınırlı.

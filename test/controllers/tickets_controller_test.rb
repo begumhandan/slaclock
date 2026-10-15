@@ -65,6 +65,6 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     follow_redirect!
 
     assert_equal "closed", ticket.reload.status
-    assert_match "gecilemez", response.body
+    assert_match "Kapandı durumundan Açık durumuna geçilemez.", response.body
   end
 end

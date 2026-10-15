@@ -12,6 +12,16 @@ class Ticket < ApplicationRecord
     "closed" => []
   }.freeze
 
+  # Ekranda gorunen durum adlari (hata mesajlari da bunlari kullanir).
+  STATUS_LABELS = {
+    "new" => "Yeni",
+    "open" => "Açık",
+    "pending" => "Müşteri bekleniyor",
+    "on_hold" => "Beklemede (3. taraf)",
+    "solved" => "Çözüldü",
+    "closed" => "Kapandı"
+  }.freeze
+
   # Zaman kurallari. Kod yeri: "Pending 3 gunde otomatik cozulsun" -> sadece bu sabitler.
   PENDING_AUTO_SOLVE_AFTER = 7.days # musteri bu kadar yanit vermezse talep cozulur
   SOLVED_AUTO_CLOSE_AFTER = 4.days # cozulen talep bu kadar sonra kapanir
@@ -35,8 +45,11 @@ class Ticket < ApplicationRecord
   # Ilk yaniti verilmemis, SLA'si gecmis ve sayaci isleyen talepler.
   scope :sla_breached, -> { where(first_responded_at: nil, status: %w[new open pending], first_response_due_at: ...Time.current) }
 
-  validates :subject, presence: true
-  validates :requester_email, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP }
+  normalizes :requester_email, with: ->(email) { email.strip.downcase }
+
+  validates :subject, presence: true, length: { maximum: 200 }
+  validates :body, length: { maximum: 10_000 }
+  validates :requester_email, presence: true, length: { maximum: 254 }, format: { with: URI::MailTo::EMAIL_REGEXP }
 
   def can_transition_to?(target)
     TRANSITIONS.fetch(status, []).include?(target.to_s)
@@ -49,7 +62,8 @@ class Ticket < ApplicationRecord
   def transition_to!(target)
     target = target.to_s
     unless can_transition_to?(target)
-      raise InvalidTransition, "#{status} durumundan #{target} durumuna gecilemez"
+      target_label = STATUS_LABELS.fetch(target, "bilinmeyen bir durum")
+      raise InvalidTransition, "#{STATUS_LABELS.fetch(status)} durumundan #{target_label} durumuna geçilemez."
     end
 
     transaction do

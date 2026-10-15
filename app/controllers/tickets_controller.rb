@@ -34,7 +34,7 @@ class TicketsController < ApplicationController
     @ticket = Ticket.new(ticket_params)
 
     if @ticket.save
-      redirect_to root_path, notice: "Talebiniz alindi. Talep numaraniz: ##{@ticket.id}"
+      redirect_to root_path, notice: "Talebiniz alındı. Talep numaranız: ##{@ticket.id}"
     else
       render :new, status: :unprocessable_content
     end
@@ -42,14 +42,14 @@ class TicketsController < ApplicationController
 
   def transition
     @ticket.transition_to!(params[:to])
-    redirect_to @ticket, notice: "Durum guncellendi."
+    redirect_to @ticket, notice: "Durum güncellendi."
   rescue Ticket::InvalidTransition => e
     redirect_to @ticket, alert: e.message
   end
 
   def assign_to_me
     @ticket.assign_to!(Current.user)
-    redirect_to @ticket, notice: "Talep size atandi."
+    redirect_to @ticket, notice: "Talep size atandı."
   rescue Ticket::InvalidTransition => e
     redirect_to @ticket, alert: e.message
   end

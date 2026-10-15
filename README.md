@@ -1,8 +1,8 @@
-# [SlacLock] — Destek talebi yönetimi
+# SLA Clock — Destek talebi yönetimi
 
-![CI](https://github.com/begumhandan/[REPO]/actions/workflows/ci.yml/badge.svg)
+[![CI](https://github.com/begumhandan/slaclock/actions/workflows/ci.yml/badge.svg)](https://github.com/begumhandan/slaclock/actions/workflows/ci.yml)
 
-**Canlı:** [[URL](https://slaclock.onrender.com/)]  ·  **İlham kaynağı:** Zendesk Support (uygulamada orijinal marka, ad veya logo kullanılmaz)
+**Canlı:** https://slaclock.onrender.com  ·  **İlham kaynağı:** Zendesk Support (uygulamada orijinal marka, ad veya logo kullanılmaz)
 
 > YZM379 · Ruby on Rails 8 · "Bir haftada aort dilimi" ödevi
 
@@ -39,7 +39,6 @@ Zendesk'in müşteriye para ödeten çekirdeği budur: müşteri talebinin kaybo
 
 **Fortune 500 kanıtı:** Uber, Zendesk müşterisi. Zendesk Support'u 2010'dan beri sürücü ve yolcu desteği için kullanıyor; yaklaşık 1.000 destek temsilcisi var ([Zendesk müşteri hikâyesi: Uber](https://www.zendesk.com/customer/uber/)). Uber, 2026 Fortune 500 listesinde: gelir 52,0 milyar $, 34.000 çalışan ([Fortune 500 profili](https://fortune.com/company/uber-technologies/fortune500)).
 
-_[İsteğe bağlı: ikinci bir Fortune 500 müşterisi eklemek kanıtı güçlendirir.]_
 
 ---
 
@@ -64,9 +63,11 @@ Varsayımlar:
 |---|---|---|---|---|
 | Zendesk monolitinin tamamı | ~1,6M | ~16M | çıktı ~320 $ + girdi ~640–1.900 $ ≈ **1.000–2.500 $** (düzeltme turları hariç) | haftalar (tek oturuma sığmaz) |
 | Benim aort dilimim (tahmin) | ~3.000–6.000 (testler dahil) | ~30–60k | formüle göre ~2–8 $; düzeltme turlarıyla **~10–40 $** API ya da mevcut abonelik | **2–3 gün** |
-| Benim aort dilimim (**gerçek**) | _[cloc çıktısı]_ | _[ajan arayüzünden]_ | _[$]_ | _[gün / saat]_ |
+| Benim aort dilimim (**gerçek**) | ~1.760 (745 Ruby + 306 görünüm + 152 CSS + 561 test) | ~205k çıktı; 85,6M önbellekten okuma + 0,9M önbelleğe yazma | **~46 $** liste fiyatıyla (abonelikle ödendi) | **1 gün** (15 Ekim, molalar dahil ~9,5 saat) |
 
 **Karşılaştırma için lisans maliyeti:** Zendesk Suite Professional'ın liste fiyatı temsilci başına aylık 115 $ (yıllık ödemede) ([Zendesk fiyatlandırma](https://www.zendesk.com/pricing/)). Uber ölçeğinde 1.000 temsilci için liste fiyatıyla yılda yaklaşık 1,38 milyon $ eder. Enterprise fiyatı açıklanmıyor ve kurumsal indirimleri bilmiyorum; bu rakam sadece büyüklük mertebesini göstermek için.
+
+**Tahmin ile gerçeğin farkı:** Tahminim 10–40 $ idi, gerçek ~46 $ oldu. Fark çıktıdan değil girdiden geliyor: ajan her turda bütün bağlamı (sohbet, dosyalar, loglar) yeniden okuyor. Okunan token, yazılan token'ın yaklaşık 400 katı. Yani maliyeti kod yazmak değil, ajana bağlamı tekrar tekrar "anlatmak" belirliyor. Rakamlar bu proje için tek bir uzun sohbetten ölçüldü (araştırma ve kurulum sorunları dahil). Satır sayıları `wc -l` ile, token sayıları oturum kayıtlarından sayıldı; önbellek fiyatları için standart oranlar (okuma 0,1×, yazma 2×) varsayıldı.
 
 **Sonuç:** Kopyalamanın token maliyeti, lisans maliyetinin yanında küçük kalıyor. Pahalı olan kısım, doğrulama süresi ve ürünün bir sonraki ihtiyacını tasarlamak.
 
@@ -84,18 +85,46 @@ Varsayımlar:
 
 ---
 
+## Nasıl denenir?
+
+1. https://slaclock.onrender.com adresini açın. Ücretsiz sunucu uyuyorsa ilk açılış 30–60 saniye sürebilir.
+2. **Talep aç** ile giriş yapmadan bir talep oluşturun (öncelik seçin).
+3. **Temsilci girişi** yapın (hesap bilgisi sunumda verilir) → **Talepler** → talebe tıklayın.
+4. **İlk yanıt SLA'sı** kutusunda son tarihi, **"SLA neden bu saatte?"** ile hesabın adımlarını görün.
+5. **→ Beklemede (3. taraf)** yapın: SLA ⏸ durur. **→ Açık** yapınca kaldığı yerden devam eder.
+6. Yanıt yazın (iç not ilk yanıt sayılmaz), sonra **Çözüldü → Kapandı**.
+
+## Testler
+
+```bash
+bin/rails test     # 64 test: durum akışı, 11 yasak geçiş, SLA (travel_to), zaman kuralları, ekranlar
+bin/rubocop
+```
+
+Testler her push'ta GitHub Actions'ta çalışır (yukarıdaki rozet). Zaman kurallarının testleri `test/models/ticket_sla_test.rb` ve `test/models/ticket_time_rules_test.rb` içinde.
+
 ## Kurulum
 
 ```bash
-bin/setup
-bin/rails test
-bin/dev
+bin/setup          # gem'ler, veritabanı, seed (yerel temsilci: temsilci@slaclock.test / slaclock123)
+bin/rails server   # http://localhost:3000
 ```
+
+Windows'ta komutların başına `ruby` ekleyin (`ruby bin/rails server`). Windows'a özgü ayarlar AGENT.md'de "Konvansiyondan sapmalar" bölümünde.
 
 ## Yapamadıklarım
 
-_[Dürüstçe doldurulacak. Örnek: e-posta kanalı yok, sadece web formu; çoklu marka yok; ...]_
+- **E-posta kanalı yok.** Talepler yalnızca web formundan geliyor; müşteri e-postayla yanıt veremiyor. Bu yüzden "müşteri yanıt verince pending → open" geçişini temsilci elle yapıyor.
+- **Müşteri portalı yok.** Müşteri talebinin durumunu ve yanıtları göremiyor.
+- **Ekip başına farklı saat dilimi yok.** SLA, tek bir iş takvimine (İstanbul, Pzt–Cuma 09:00–18:00) göre hesaplanıyor. Yorumdaki "birden çok saat dilimi" acısının yalnızca ilk adımını çözdüm: hesap saat dilimine ve tatile göre doğru ve açıklanabilir, ama ekip veya marka başına ayrı takvim seçilemiyor.
+- **Dini bayramlar ve arife yarım günleri takvimde yok.** Yalnızca sabit tarihli resmi tatiller seed ile ekleniyor; tatil arayüzden eklenemiyor.
+- **Yalnızca ilk yanıt SLA'sı var.** "Sonraki yanıt süresi" ve "çözüm süresi" SLA'ları yok.
+- **Öncelik sonradan değiştirilemiyor.** Talep açılırken seçiliyor; değişseydi SLA'nın yeniden hesaplanması gerekirdi.
+- **Zamanlanmış iş çalışmıyor.** Render ücretsiz planı uygulamayı 15 dakika sonra uyutuyor. Otomatik çözme ve kapanma kuralları `TimeRulesJob` olarak yazıldı, ama canlıda temsilci talep listesini açtığında uygulanıyor.
+- **Temsilci yönetimi yok.** Temsilci hesabı seed ile oluşturuluyor; arayüzden kayıt veya ekip yönetimi yok.
+- **Tarayıcı (system) testleri yok.** CI'da model ve controller testleri çalışıyor.
+- **Ücretsiz altyapı sınırları:** İlk istekte uyanma gecikmesi var ve Render'ın ücretsiz veritabanının süresi sınırlı.
 
 ## AGENT.md
 
-Ajanla ortak sözlük, yasak sihirler ve kural haritası (hangi kural hangi dosyada) için: [AGENT.md](AGENT.md)
+Ajanla ortak sözlük, yasak sihirler, test kuralları, **kural haritası** (hangi kural hangi dosyada) ve konvansiyondan sapmalar: [AGENT.md](AGENT.md)

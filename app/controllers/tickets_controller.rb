@@ -3,6 +3,11 @@ class TicketsController < ApplicationController
   allow_unauthenticated_access only: %i[new create]
   before_action :set_ticket, only: %i[show transition assign_to_me]
 
+  # Herkese acik form: ayni adresten dakikada en fazla 5 talep (spam korumasi).
+  RATE_LIMIT_STORE = ActiveSupport::Cache::MemoryStore.new
+  rate_limit to: 5, within: 1.minute, only: :create, store: RATE_LIMIT_STORE,
+             with: -> { redirect_to new_ticket_path, alert: "Çok fazla talep gönderdiniz. Bir dakika sonra tekrar deneyin." }
+
   def index
     # Render ucretsiz planda uygulama uyudugu icin zamanlanmis is guvenilir degil;
     # zaman kurallari temsilci listeyi actiginda da uygulanir (bkz. AGENT.md).

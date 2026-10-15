@@ -58,7 +58,12 @@ Rails.application.configure do
   # config.action_mailer.raise_delivery_errors = false
 
   # Set host to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: "example.com" }
+  config.action_mailer.default_url_options = { host: ENV.fetch("APP_HOST", "slaclock.onrender.com"), protocol: "https" }
+
+  # Render ucretsiz planinda SMTP portlari kapali; e-posta Resend HTTPS API'si ile gider
+  # (config/initializers/resend_delivery.rb, ortam degiskeni RESEND_API_KEY).
+  config.action_mailer.delivery_method = :resend
+  config.action_mailer.raise_delivery_errors = true
 
   # Specify outgoing SMTP server. Remember to add smtp/* credentials via bin/rails credentials:edit.
   # config.action_mailer.smtp_settings = {

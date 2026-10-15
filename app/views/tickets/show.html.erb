@@ -58,7 +58,8 @@
           <%= button_to "Bana ata", assign_to_me_ticket_path(@ticket), method: :patch %>
         <% end %>
         <% @ticket.allowed_transitions.each do |target| %>
-          <%= button_to status_label(target), transition_ticket_path(@ticket, to: target), method: :patch, form_class: "button_to button-quiet" %>
+          <%= button_to status_label(target), transition_ticket_path(@ticket, to: target), method: :patch, form_class: "button_to button-quiet",
+                form: (target == "closed" ? { data: { turbo_confirm: "Talep kalıcı olarak kapanacak ve bir daha açılamayacak. Emin misiniz?" } } : {}) %>
         <% end %>
         <% if @ticket.allowed_transitions.empty? %>
           <span class="muted">Kapalı talepte işlem yapılamaz.</span>

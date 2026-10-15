@@ -90,6 +90,8 @@ solved ──(müşteri yanıtı)──▶ open
 | Testler tek iş parçacığında | `test/test_helper.rb` | 50+ testte Rails thread paralelliği SQLite'ı kilitliyordu |
 | `first_response_due_at` `before_create` ile yazılır | `app/models/ticket.rb` | Türetilmiş alan; AGENT.md callback kuralına uygun |
 | Deploy Render'da Docker ile | `Dockerfile` | Render'ın Ruby ortamında Ruby 4.0.7 desteği belirsizdi |
+| E-posta SMTP değil Resend HTTPS API ile | `config/initializers/resend_delivery.rb` | Render ücretsiz planı 25/465/587 portlarını kapatıyor (Eylül 2025) |
+| Arayüz dili Türkçe (`default_locale = :tr`) | `config/locales/tr.yml` | Hata ve alan adları Türkçe; rails-i18n gem'i yerine kendi çevirimiz |
 | Render Health Check Path = `/up` | Render ayarı | Ana sayfa yokken `/` 404 dönüyor ve deploy başarısız sayılıyordu |
 
 ## 8. Çalıştırma (Windows)

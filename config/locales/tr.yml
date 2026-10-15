@@ -1,0 +1,43 @@
+tr:
+  activerecord:
+    models:
+      ticket: Talep
+      comment: Yanıt
+      user: Temsilci
+      holiday: Tatil
+    attributes:
+      ticket:
+        subject: Konu
+        body: Açıklama
+        requester_email: E-posta adresi
+        priority: Öncelik
+        status: Durum
+      comment:
+        body: Yanıt
+      user:
+        email_address: E-posta
+        password: Şifre
+        password_confirmation: Şifre tekrarı
+      holiday:
+        date: Tarih
+        name: Ad
+    errors:
+      messages:
+        record_invalid: "Kaydedilemedi: %{errors}"
+  errors:
+    format: "%{attribute} %{message}"
+    messages:
+      blank: boş bırakılamaz
+      invalid: geçersiz
+      inclusion: listede yok
+      taken: zaten kullanılıyor
+      too_long: "çok uzun (en fazla %{count} karakter)"
+      too_short: "çok kısa (en az %{count} karakter)"
+      confirmation: "%{attribute} ile eşleşmiyor"
+      password_too_long: çok uzun
+      required: mevcut olmalı
+  support:
+    array:
+      words_connector: ", "
+      two_words_connector: " ve "
+      last_word_connector: " ve "

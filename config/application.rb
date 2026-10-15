@@ -23,6 +23,8 @@ module Slaclock
     #
     # Ekranda gosterilen saatler Turkiye saati.
     config.time_zone = "Istanbul"
+    config.i18n.default_locale = :tr
+    config.i18n.available_locales = %i[tr en]
     # config.eager_load_paths << Rails.root.join("extras")
   end
 end

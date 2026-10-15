@@ -1,6 +1,6 @@
+<p>Merhaba,</p>
 <p>
-  You can reset your password on
-  <%= link_to "this password reset page", edit_password_url(@user.password_reset_token) %>.
-
-  This link will expire in <%= distance_of_time_in_words(0, @user.password_reset_token_expires_in) %>.
+  SLA Clock temsilci hesabınız için şifre sıfırlama isteği aldık. Yeni şifrenizi
+  <%= link_to "bu sayfadan belirleyebilirsiniz", edit_password_url(@user.password_reset_token) %>.
 </p>
+<p>Bağlantı <%= @user.password_reset_token_expires_in.in_minutes.to_i %> dakika geçerlidir. Bu isteği siz yapmadıysanız bu e-postayı yok sayabilirsiniz.</p>

@@ -46,7 +46,8 @@ class BusinessCalendar
     # from'dan itibaren is saatlerinde ilerleyerek `minutes` is dakikasi harcar.
     # stop_at verilirse o ana gelince durur (SLA duraklatmasi icin).
     def walk(from, minutes, stop_at: nil)
-      time = from.in_time_zone(zone)
+      # Saniyeler atilir: dakika kusuratlari her gun gecisinde birikip son tarihi kaydirmasin.
+      time = from.in_time_zone(zone).change(sec: 0)
       date = time.to_date
       remaining = minutes
       used = 0

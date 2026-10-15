@@ -9,6 +9,12 @@
 <% if @ticket.solved_at %>
   <p><strong>Çözülme:</strong> <%= l(@ticket.solved_at, format: :short) %></p>
 <% end %>
+<% if @ticket.auto_solve_at %>
+  <p><strong>Otomatik çözülme:</strong> Müşteri yanıt vermezse <%= tr_time(@ticket.auto_solve_at) %></p>
+<% end %>
+<% if @ticket.auto_close_at %>
+  <p><strong>Otomatik kapanma:</strong> <%= tr_time(@ticket.auto_close_at) %></p>
+<% end %>
 
 <%= render "sla_panel", ticket: @ticket %>
 

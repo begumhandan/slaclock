@@ -4,6 +4,9 @@ class TicketsController < ApplicationController
   before_action :set_ticket, only: %i[show transition assign_to_me]
 
   def index
+    # Render ucretsiz planda uygulama uyudugu icin zamanlanmis is guvenilir degil;
+    # zaman kurallari temsilci listeyi actiginda da uygulanir (bkz. AGENT.md).
+    Ticket.apply_time_rules!
     @tickets = Ticket.includes(:assignee).order(created_at: :desc)
     @tickets = @tickets.sla_breached if params[:filter] == "sla_breached"
   end

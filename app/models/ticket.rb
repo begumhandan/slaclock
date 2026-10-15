@@ -12,6 +12,10 @@ class Ticket < ApplicationRecord
     "closed" => []
   }.freeze
 
+  # Zaman kurallari. Kod yeri: "Pending 3 gunde otomatik cozulsun" -> sadece bu sabitler.
+  PENDING_AUTO_SOLVE_AFTER = 7.days # musteri bu kadar yanit vermezse talep cozulur
+  SOLVED_AUTO_CLOSE_AFTER = 4.days # cozulen talep bu kadar sonra kapanir
+
   # instance_methods: false -> solved! gibi korumasiz bang metotlari URETILMEZ.
   # Durum yalnizca transition_to! ile degisir. (Rails enum'u bir durum makinesi degildir.)
   enum :status, { new: 0, open: 1, pending: 2, on_hold: 3, solved: 4, closed: 5 },
@@ -50,11 +54,31 @@ class Ticket < ApplicationRecord
       sla_pauses.create!(started_at: Time.current) if target == "on_hold"
       sla_pauses.ongoing.update_all(ended_at: Time.current) if status == "on_hold"
 
-      attributes = { status: target, first_response_due_at: SlaClock.new(self).compute.due_at }
+      attributes = { status: target, status_changed_at: Time.current, first_response_due_at: SlaClock.new(self).compute.due_at }
       attributes[:solved_at] = Time.current if target == "solved"
       attributes[:solved_at] = nil if status == "solved" && target == "open"
       update!(attributes)
     end
+  end
+
+  # Zamanla isleyen kurallar: pending'de bekleyen talepleri cozer, cozulmus talepleri kapatir.
+  # TimeRulesJob ve talep listesi acilirken calisir (bkz. AGENT.md).
+  def self.apply_time_rules!
+    now = Time.current
+    where(status: "pending", status_changed_at: ..(now - PENDING_AUTO_SOLVE_AFTER)).find_each do |ticket|
+      ticket.transition_to!(:solved)
+    end
+    where(status: "solved", solved_at: ..(now - SOLVED_AUTO_CLOSE_AFTER)).find_each do |ticket|
+      ticket.transition_to!(:closed)
+    end
+  end
+
+  def auto_solve_at
+    status_changed_at + PENDING_AUTO_SOLVE_AFTER if status == "pending" && status_changed_at
+  end
+
+  def auto_close_at
+    solved_at + SOLVED_AUTO_CLOSE_AFTER if status == "solved" && solved_at
   end
 
   # :running, :paused, :met, :breached

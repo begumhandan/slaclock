@@ -72,6 +72,9 @@ solved ──(müşteri yanıtı)──▶ open
 | "Bayramlar sayılmasın" | `db/seeds.rb` (`Holiday` kayıtları) |
 | "on_hold SLA'yı durdurmasın" | `app/models/ticket.rb` (`transition_to!` içindeki `sla_pauses` satırları) |
 | SLA hesabının kendisi | `app/services/sla_clock.rb` |
+| "Pending 3 günde otomatik çözülsün" | `app/models/ticket.rb` (`PENDING_AUTO_SOLVE_AFTER`) |
+| "Çözülen talep 2 günde kapansın" | `app/models/ticket.rb` (`SOLVED_AUTO_CLOSE_AFTER`) |
+| Zaman kurallarını kim çalıştırır? | `app/jobs/time_rules_job.rb` + `TicketsController#index` |
 
 ## 7. Konvansiyondan sapmalar (neden?)
 
@@ -83,7 +86,8 @@ solved ──(müşteri yanıtı)──▶ open
 | CI'da `system-test` yok | `.github/workflows/ci.yml` | Tarayıcı testi yazmıyoruz; model/entegrasyon testleri yeterli |
 | Geliştirme/test SQLite, canlı PostgreSQL | `Gemfile`, `config/database.yml` | Render ücretsiz planında kalıcı disk yok |
 | Canlıda önbellek `memory_store`, Cable `async` | `production.rb`, `cable.yml`, `cache.yml` | Ücretsiz planda tek veritabanı var |
-| Canlıda Active Job `async` (geçici) | `production.rb` | Solid Queue zaman kuralı job'larında tek veritabanıyla kurulacak |
+| Canlıda Active Job `async`, zamanlanmış iş yok | `production.rb` | Render ücretsiz planı 15 dk sonra uyuyor; zamanlanmış iş güvenilir değil. Zaman kuralları temsilci talep listesini açtığında da uygulanıyor |
+| Testler tek iş parçacığında | `test/test_helper.rb` | 50+ testte Rails thread paralelliği SQLite'ı kilitliyordu |
 | `first_response_due_at` `before_create` ile yazılır | `app/models/ticket.rb` | Türetilmiş alan; AGENT.md callback kuralına uygun |
 | Deploy Render'da Docker ile | `Dockerfile` | Render'ın Ruby ortamında Ruby 4.0.7 desteği belirsizdi |
 | Render Health Check Path = `/up` | Render ayarı | Ana sayfa yokken `/` 404 dönüyor ve deploy başarısız sayılıyordu |

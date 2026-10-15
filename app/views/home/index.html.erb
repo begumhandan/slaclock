@@ -1,0 +1,9 @@
+<h1>SLA Clock</h1>
+<p>Destek talepleriniz, söz verilen sürede.</p>
+
+<% if authenticated? %>
+  <p>Hoş geldin, <%= Current.user.email_address %>.</p>
+  <%= button_to "Çıkış yap", session_path, method: :delete %>
+<% else %>
+  <p><%= link_to "Temsilci girişi", new_session_path %></p>
+<% end %>

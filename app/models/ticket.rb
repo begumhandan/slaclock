@@ -19,6 +19,7 @@ class Ticket < ApplicationRecord
   enum :priority, { low: 0, normal: 1, high: 2, urgent: 3 }, validate: true
 
   belongs_to :assignee, class_name: "User", optional: true
+  has_many :comments, dependent: :destroy
 
   validates :subject, presence: true
   validates :requester_email, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP }
@@ -48,6 +49,23 @@ class Ticket < ApplicationRecord
     transaction do
       update!(assignee: user)
       transition_to!(:open) if status == "new"
+    end
+  end
+
+  # Temsilci yaniti. Ilk herkese acik temsilci yaniti "ilk yanit" zamanini yazar
+  # (ilk yanit SLA'si burada durur). Ic not ilk yanit sayilmaz.
+  # Yeni bir talebe yanit veren temsilci, talep kimseye atanmamissa talebi ustlenir.
+  def add_reply!(author:, body:, internal: false)
+    transaction do
+      comment = comments.create!(author: author, body: body, internal: internal)
+
+      unless internal
+        update!(assignee: author) if assignee.nil?
+        transition_to!(:open) if status == "new"
+        update!(first_responded_at: comment.created_at) if first_responded_at.nil?
+      end
+
+      comment
     end
   end
 end

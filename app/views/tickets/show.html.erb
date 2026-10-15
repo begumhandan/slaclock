@@ -4,13 +4,44 @@
 <p><strong>Öncelik:</strong> <%= priority_label(@ticket.priority) %></p>
 <p><strong>Durum:</strong> <%= status_label(@ticket.status) %></p>
 <p><strong>Atanan:</strong> <%= @ticket.assignee&.email_address || "—" %></p>
+<p><strong>Oluşturulma:</strong> <%= l(@ticket.created_at, format: :short) %></p>
+<p><strong>İlk yanıt:</strong> <%= @ticket.first_responded_at ? l(@ticket.first_responded_at, format: :short) : "Henüz yanıt verilmedi" %></p>
 <% if @ticket.solved_at %>
   <p><strong>Çözülme:</strong> <%= l(@ticket.solved_at, format: :short) %></p>
 <% end %>
 
 <% if @ticket.body.present? %>
   <h2>Açıklama</h2>
-  <p><%= simple_format(@ticket.body) %></p>
+  <%= simple_format(@ticket.body) %>
+<% end %>
+
+<h2>Yanıtlar</h2>
+<% @ticket.comments.chronological.includes(:author).each do |comment| %>
+  <div style="border-left: 4px solid <%= comment.internal ? "#d4a017" : "#2a7ae2" %>; padding-left: 8px; margin-bottom: 12px;">
+    <small>
+      <%= comment.author&.email_address || @ticket.requester_email %> ·
+      <%= l(comment.created_at, format: :short) %>
+      <%= "· İç not" if comment.internal %>
+    </small>
+    <%= simple_format(comment.body) %>
+  </div>
+<% end %>
+<% if @ticket.comments.empty? %>
+  <p>Henüz yanıt yok.</p>
+<% end %>
+
+<% unless @ticket.status == "closed" %>
+  <%= form_with model: [ @ticket, Comment.new ] do |form| %>
+    <p>
+      <%= form.label :body, "Yanıtınız" %><br>
+      <%= form.text_area :body, rows: 4, required: true %>
+    </p>
+    <p>
+      <%= form.check_box :internal %>
+      <%= form.label :internal, "İç not (müşteri görmez, ilk yanıt sayılmaz)" %>
+    </p>
+    <%= form.submit "Yanıtı gönder" %>
+  <% end %>
 <% end %>
 
 <h2>İşlemler</h2>

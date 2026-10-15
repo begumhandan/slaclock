@@ -7,6 +7,7 @@ Rails.application.routes.draw do
       patch :transition
       patch :assign_to_me
     end
+    resources :comments, only: :create
   end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

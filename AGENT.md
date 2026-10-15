@@ -16,7 +16,9 @@ ekibin iş takvimine (mesai, tatil, saat dilimi) göre hesaplanır ve neden o sa
 | Talep sahibi / müşteri | `requester_email` | Giriş yapmaz |
 | Temsilci | `User` | Giriş yapar |
 | Atanan temsilci | `assignee` | `User`'a referans |
-| Yorum / yanıt | `Comment` (`public: true/false`) | İç not = `public: false` |
+| Yanıt | `Comment` | Temsilci yanıtı |
+| İç not | `Comment` (`internal: true`) | Müşteri görmez, ilk yanıt sayılmaz |
+| İlk yanıt | `first_responded_at` | İlk herkese açık temsilci yanıtı |
 | Öncelik | `priority`: low, normal, high, urgent | |
 | Durum | `status`: new, open, pending, on_hold, solved, closed | |
 | Müşteri bekleniyor | `pending` | |
@@ -59,6 +61,8 @@ solved ──(müşteri yanıtı)──▶ open
 | Kural | Dosya |
 |---|---|
 | Durum geçişleri | `app/models/ticket.rb` (`TRANSITIONS`) |
+| Atama yeni talebi açar | `app/models/ticket.rb` (`assign_to!`) |
+| İlk yanıt ne sayılır? | `app/models/ticket.rb` (`add_reply!`) |
 | _(SLA, takvim, job'lar eklendikçe doldurulacak)_ | |
 
 ## 7. Konvansiyondan sapmalar (neden?)

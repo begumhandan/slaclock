@@ -1,0 +1,5 @@
+open_ticket_reply:
+  ticket: open_ticket
+  author: one
+  body: Merhaba, sifre sifirlama linkini tekrar gonderdik.
+  internal: false

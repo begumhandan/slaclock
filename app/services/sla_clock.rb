@@ -42,7 +42,10 @@ class SlaClock
     def pauses
       return [] if @ticket.new_record?
 
-      @ticket.sla_pauses.chronological.to_a
+      pauses = @ticket.sla_pauses.chronological
+      # Ilk yanittan sonra baslayan beklemeler ilk yanit SLA'sini etkilemez.
+      pauses = pauses.where(started_at: ...@ticket.first_responded_at) if @ticket.first_responded_at
+      pauses.to_a
     end
 
     def finished(due_at, steps)

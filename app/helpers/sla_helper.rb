@@ -27,7 +27,7 @@ module SlaHelper
 
     case ticket.sla_state(now)
     when :met
-      { state: :met, pct: 100, text: "Zamanında yanıtlandı" }
+      { state: :met, pct: 100, text: ticket.first_responded_at ? "Zamanında yanıtlandı" : "Yanıt gerekmeden çözüldü" }
     when :paused
       remaining = SlaClock.new(ticket, now: now).compute.remaining_minutes
       { state: :paused, pct: used_pct.call(remaining), text: "Durdu, #{duration_text(remaining)} kaldı" }
@@ -35,8 +35,12 @@ module SlaHelper
       if ticket.first_responded_at
         { state: :breached, pct: 100, text: "Geç yanıtlandı" }
       else
-        late = BusinessCalendar.business_minutes_between(ticket.first_response_due_at, now)
-        { state: :breached, pct: 100, text: late.positive? ? "#{duration_text(late)} gecikti" : "Süre doldu" }
+        # Cozulmus/kapanmis talepte gecikme cozulme aninda donar; sonsuza kadar buyumez.
+        finished_at = ticket.status.in?(%w[solved closed]) ? (ticket.solved_at || now) : now
+        late = BusinessCalendar.business_minutes_between(ticket.first_response_due_at, finished_at)
+        text = late.positive? ? "#{duration_text(late)} gecikti" : "Süre doldu"
+        text = "Yanıtlanmadan çözüldü, #{text}" if finished_at != now
+        { state: :breached, pct: 100, text: text }
       end
     else
       return { state: :none, pct: 0, text: "—" } unless ticket.first_response_due_at

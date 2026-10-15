@@ -45,6 +45,8 @@ class TicketsController < ApplicationController
   def assign_to_me
     @ticket.assign_to!(Current.user)
     redirect_to @ticket, notice: "Talep size atandi."
+  rescue Ticket::InvalidTransition => e
+    redirect_to @ticket, alert: e.message
   end
 
   private

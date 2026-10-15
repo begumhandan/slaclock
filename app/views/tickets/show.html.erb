@@ -54,7 +54,7 @@
     <section class="panel">
       <h2>Durum</h2>
       <div class="actions">
-        <% if @ticket.assignee != Current.user %>
+        <% if @ticket.assignee != Current.user && !@ticket.closed? %>
           <%= button_to "Bana ata", assign_to_me_ticket_path(@ticket), method: :patch %>
         <% end %>
         <% @ticket.allowed_transitions.each do |target| %>

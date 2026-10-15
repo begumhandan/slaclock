@@ -9,6 +9,8 @@ class CommentsController < ApplicationController
     redirect_to @ticket, notice: "Yanit eklendi."
   rescue ActiveRecord::RecordInvalid => e
     redirect_to @ticket, alert: e.record.errors.full_messages.to_sentence
+  rescue Ticket::InvalidTransition => e
+    redirect_to @ticket, alert: e.message
   end
 
   private

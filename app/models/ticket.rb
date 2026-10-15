@@ -57,7 +57,9 @@ class Ticket < ApplicationRecord
       sla_pauses.create!(started_at: Time.current) if target == "on_hold"
       sla_pauses.ongoing.update_all(ended_at: Time.current) if status == "on_hold"
 
-      attributes = { status: target, status_changed_at: Time.current, first_response_due_at: SlaClock.new(self).compute.due_at }
+      # Ilk yanit verildiyse SLA sonuclanmistir; sonraki beklemeler son tarihi degistirmez.
+      due_at = first_responded_at ? first_response_due_at : SlaClock.new(self).compute.due_at
+      attributes = { status: target, status_changed_at: Time.current, first_response_due_at: due_at }
       attributes[:solved_at] = Time.current if target == "solved"
       attributes[:solved_at] = nil if status == "solved" && target == "open"
       update!(attributes)
@@ -99,8 +101,14 @@ class Ticket < ApplicationRecord
     end
   end
 
+  def closed?
+    status == "closed"
+  end
+
   # Yeni bir talep bir temsilciye atandiginda otomatik olarak "open" olur.
   def assign_to!(user)
+    raise InvalidTransition, "Kapalı talepte işlem yapılamaz" if closed?
+
     transaction do
       update!(assignee: user)
       transition_to!(:open) if status == "new"
@@ -111,6 +119,8 @@ class Ticket < ApplicationRecord
   # (ilk yanit SLA'si burada durur). Ic not ilk yanit sayilmaz.
   # Yeni bir talebe yanit veren temsilci, talep kimseye atanmamissa talebi ustlenir.
   def add_reply!(author:, body:, internal: false)
+    raise InvalidTransition, "Kapalı talepte işlem yapılamaz" if closed?
+
     transaction do
       comment = comments.create!(author: author, body: body, internal: internal)
 

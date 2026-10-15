@@ -121,6 +121,7 @@ Windows'ta komutların başına `ruby` ekleyin (`ruby bin/rails server`). Window
 - **Yalnızca ilk yanıt SLA'sı var.** "Sonraki yanıt süresi" ve "çözüm süresi" SLA'ları yok.
 - **Öncelik sonradan değiştirilemiyor.** Talep açılırken seçiliyor; değişseydi SLA'nın yeniden hesaplanması gerekirdi.
 - **Zamanlanmış iş çalışmıyor.** Render ücretsiz planı uygulamayı 15 dakika sonra uyutuyor. Otomatik çözme ve kapanma kuralları `TimeRulesJob` olarak yazıldı, ama canlıda temsilci talep listesini açtığında uygulanıyor.
+- **Şifre sıfırlama e-postası yok.** Canlıda e-posta sunucusu ayarlı olmadığı için "şifremi unuttum" akışı arayüzden kaldırıldı; temsilci şifresi Render ortam değişkeniyle belirleniyor.
 - **Temsilci yönetimi yok.** Temsilci hesabı seed ile oluşturuluyor; arayüzden kayıt veya ekip yönetimi yok.
 - **Tarayıcı (system) testleri yok.** CI'da model ve controller testleri çalışıyor.
 - **Ücretsiz altyapı sınırları:** İlk istekte uyanma gecikmesi var ve Render'ın ücretsiz veritabanının süresi sınırlı.

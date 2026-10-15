@@ -1,0 +1,30 @@
+<h1>Yeni destek talebi</h1>
+
+<%= form_with model: @ticket do |form| %>
+  <% if @ticket.errors.any? %>
+    <ul style="color: red">
+      <% @ticket.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <p>
+    <%= form.label :requester_email, "E-posta adresiniz" %><br>
+    <%= form.email_field :requester_email, required: true %>
+  </p>
+  <p>
+    <%= form.label :subject, "Konu" %><br>
+    <%= form.text_field :subject, required: true %>
+  </p>
+  <p>
+    <%= form.label :body, "Açıklama" %><br>
+    <%= form.text_area :body, rows: 5 %>
+  </p>
+  <p>
+    <%= form.label :priority, "Öncelik" %><br>
+    <%= form.select :priority, Ticket.priorities.keys.map { |p| [ priority_label(p), p ] } %>
+  </p>
+
+  <%= form.submit "Talebi gönder" %>
+<% end %>

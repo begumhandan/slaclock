@@ -27,6 +27,10 @@ class Ticket < ApplicationRecord
     TRANSITIONS.fetch(status, []).include?(target.to_s)
   end
 
+  def allowed_transitions
+    TRANSITIONS.fetch(status, [])
+  end
+
   def transition_to!(target)
     target = target.to_s
     unless can_transition_to?(target)
@@ -37,5 +41,13 @@ class Ticket < ApplicationRecord
     attributes[:solved_at] = Time.current if target == "solved"
     attributes[:solved_at] = nil if status == "solved" && target == "open"
     update!(attributes)
+  end
+
+  # Yeni bir talep bir temsilciye atandiginda otomatik olarak "open" olur.
+  def assign_to!(user)
+    transaction do
+      update!(assignee: user)
+      transition_to!(:open) if status == "new"
+    end
   end
 end

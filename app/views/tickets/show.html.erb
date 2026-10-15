@@ -1,0 +1,29 @@
+<h1>#<%= @ticket.id %> <%= @ticket.subject %></h1>
+
+<p><strong>Talep sahibi:</strong> <%= @ticket.requester_email %></p>
+<p><strong>Öncelik:</strong> <%= priority_label(@ticket.priority) %></p>
+<p><strong>Durum:</strong> <%= status_label(@ticket.status) %></p>
+<p><strong>Atanan:</strong> <%= @ticket.assignee&.email_address || "—" %></p>
+<% if @ticket.solved_at %>
+  <p><strong>Çözülme:</strong> <%= l(@ticket.solved_at, format: :short) %></p>
+<% end %>
+
+<% if @ticket.body.present? %>
+  <h2>Açıklama</h2>
+  <p><%= simple_format(@ticket.body) %></p>
+<% end %>
+
+<h2>İşlemler</h2>
+<% if @ticket.assignee != Current.user %>
+  <%= button_to "Bana ata", assign_to_me_ticket_path(@ticket), method: :patch %>
+<% end %>
+
+<% @ticket.allowed_transitions.each do |target| %>
+  <%= button_to "→ #{status_label(target)}", transition_ticket_path(@ticket, to: target), method: :patch %>
+<% end %>
+
+<% if @ticket.allowed_transitions.empty? %>
+  <p>Bu talep kapandı; başka işlem yapılamaz.</p>
+<% end %>
+
+<p><%= link_to "← Talepler", tickets_path %></p>

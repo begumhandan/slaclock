@@ -1,0 +1,32 @@
+<h1>Talepler</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Konu</th>
+      <th>Talep sahibi</th>
+      <th>Öncelik</th>
+      <th>Durum</th>
+      <th>Atanan</th>
+      <th>Oluşturulma</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @tickets.each do |ticket| %>
+      <tr>
+        <td><%= ticket.id %></td>
+        <td><%= link_to ticket.subject, ticket %></td>
+        <td><%= ticket.requester_email %></td>
+        <td><%= priority_label(ticket.priority) %></td>
+        <td><%= status_label(ticket.status) %></td>
+        <td><%= ticket.assignee&.email_address || "—" %></td>
+        <td><%= l(ticket.created_at, format: :short) %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<% if @tickets.empty? %>
+  <p>Henüz talep yok.</p>
+<% end %>

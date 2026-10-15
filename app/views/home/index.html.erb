@@ -1,8 +1,10 @@
 <h1>SLA Clock</h1>
 <p>Destek talepleriniz, söz verilen sürede.</p>
 
+<p><%= link_to "Yeni destek talebi aç", new_ticket_path %></p>
+
 <% if authenticated? %>
-  <p>Hoş geldin, <%= Current.user.email_address %>.</p>
+  <p>Hoş geldin, <%= Current.user.email_address %>. <%= link_to "Taleplere git", tickets_path %></p>
   <%= button_to "Çıkış yap", session_path, method: :delete %>
 <% else %>
   <p><%= link_to "Temsilci girişi", new_session_path %></p>

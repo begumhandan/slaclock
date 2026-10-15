@@ -1,5 +1,10 @@
 <h1>Talepler</h1>
 
+<p>
+  <%= link_to "Tümü", tickets_path %> |
+  <%= link_to "Sadece SLA'sı geçmiş olanlar", tickets_path(filter: "sla_breached") %>
+</p>
+
 <table>
   <thead>
     <tr>
@@ -9,6 +14,7 @@
       <th>Öncelik</th>
       <th>Durum</th>
       <th>Atanan</th>
+      <th>İlk yanıt SLA</th>
       <th>Oluşturulma</th>
     </tr>
   </thead>
@@ -21,6 +27,7 @@
         <td><%= priority_label(ticket.priority) %></td>
         <td><%= status_label(ticket.status) %></td>
         <td><%= ticket.assignee&.email_address || "—" %></td>
+        <td><%= sla_badge(ticket) %></td>
         <td><%= l(ticket.created_at, format: :short) %></td>
       </tr>
     <% end %>

@@ -20,6 +20,13 @@ class Ticket < ApplicationRecord
 
   belongs_to :assignee, class_name: "User", optional: true
   has_many :comments, dependent: :destroy
+  has_many :sla_pauses, dependent: :destroy
+
+  # Turetilmis alan: ilk yanit son tarihi (SlaClock hesaplar). AGENT.md: callback yalnizca turetilmis alan icin.
+  before_create { self.first_response_due_at = SlaClock.new(self).compute.due_at }
+
+  # Ilk yaniti verilmemis, SLA'si gecmis ve sayaci isleyen talepler.
+  scope :sla_breached, -> { where(first_responded_at: nil, status: %w[new open pending], first_response_due_at: ...Time.current) }
 
   validates :subject, presence: true
   validates :requester_email, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP }
@@ -38,10 +45,31 @@ class Ticket < ApplicationRecord
       raise InvalidTransition, "#{status} durumundan #{target} durumuna gecilemez"
     end
 
-    attributes = { status: target }
-    attributes[:solved_at] = Time.current if target == "solved"
-    attributes[:solved_at] = nil if status == "solved" && target == "open"
-    update!(attributes)
+    transaction do
+      # on_hold = ucuncu taraf bekleniyor: SLA sayaci durur, cikista devam eder.
+      sla_pauses.create!(started_at: Time.current) if target == "on_hold"
+      sla_pauses.ongoing.update_all(ended_at: Time.current) if status == "on_hold"
+
+      attributes = { status: target, first_response_due_at: SlaClock.new(self).compute.due_at }
+      attributes[:solved_at] = Time.current if target == "solved"
+      attributes[:solved_at] = nil if status == "solved" && target == "open"
+      update!(attributes)
+    end
+  end
+
+  # :running, :paused, :met, :breached
+  def sla_state(now = Time.current)
+    if first_responded_at
+      first_response_due_at && first_responded_at > first_response_due_at ? :breached : :met
+    elsif status == "on_hold"
+      :paused
+    elsif first_response_due_at.nil?
+      :running
+    elsif status.in?(%w[solved closed])
+      (solved_at || now) > first_response_due_at ? :breached : :met
+    else
+      now > first_response_due_at ? :breached : :running
+    end
   end
 
   # Yeni bir talep bir temsilciye atandiginda otomatik olarak "open" olur.

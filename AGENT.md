@@ -25,7 +25,10 @@ ekibin iş takvimine (mesai, tatil, saat dilimi) göre hesaplanır ve neden o sa
 | Üçüncü taraf bekleniyor | `on_hold` | SLA sayacı durur |
 | SLA ihlali | `overdue` / `sla_breached?` | |
 | İlk yanıt süresi | `first_response_due_at` | |
-| İş takvimi | `BusinessCalendar` | Mesai, hafta sonu, tatil |
+| İş takvimi | `BusinessCalendar` | Pzt–Cuma 09:00–18:00, Europe/Istanbul |
+| SLA hedefi | `SlaPolicy` | Önceliğe göre iş dakikası |
+| SLA hesabı | `SlaClock` (servis) | Tek doğru kaynak; panel de buradan |
+| SLA duraklatması | `SlaPause` | on_hold aralıkları |
 | Resmi tatil | `Holiday` | |
 
 ## 3. Durum akışı
@@ -52,7 +55,7 @@ solved ──(müşteri yanıtı)──▶ open
 
 ## 5. Test kuralları
 
-- Her zaman kuralının `travel_to` ile testi vardır.
+- Her zaman kuralının `travel_to` ile testi vardır (`test/models/ticket_sla_test.rb`).
 - Her yasak durum geçişinin testi vardır.
 - "Testler geçti" demek için GitHub Actions'ın yeşil olması şarttır. Ajanın kendi raporu kanıt değildir.
 
@@ -63,7 +66,12 @@ solved ──(müşteri yanıtı)──▶ open
 | Durum geçişleri | `app/models/ticket.rb` (`TRANSITIONS`) |
 | Atama yeni talebi açar | `app/models/ticket.rb` (`assign_to!`) |
 | İlk yanıt ne sayılır? | `app/models/ticket.rb` (`add_reply!`) |
-| _(SLA, takvim, job'lar eklendikçe doldurulacak)_ | |
+| "SLA hafta sonunu saymasın" / "Cumartesi çalışıyoruz" | `app/models/business_calendar.rb` (`WORK_DAYS`) |
+| "Mesai 08:30'da başlasın" | `app/models/business_calendar.rb` (`WORK_START`, `WORK_END`) |
+| "Acil talepte hedef 30 dk olsun" | `app/models/sla_policy.rb` (`FIRST_RESPONSE_MINUTES`) |
+| "Bayramlar sayılmasın" | `db/seeds.rb` (`Holiday` kayıtları) |
+| "on_hold SLA'yı durdurmasın" | `app/models/ticket.rb` (`transition_to!` içindeki `sla_pauses` satırları) |
+| SLA hesabının kendisi | `app/services/sla_clock.rb` |
 
 ## 7. Konvansiyondan sapmalar (neden?)
 
@@ -76,6 +84,7 @@ solved ──(müşteri yanıtı)──▶ open
 | Geliştirme/test SQLite, canlı PostgreSQL | `Gemfile`, `config/database.yml` | Render ücretsiz planında kalıcı disk yok |
 | Canlıda önbellek `memory_store`, Cable `async` | `production.rb`, `cable.yml`, `cache.yml` | Ücretsiz planda tek veritabanı var |
 | Canlıda Active Job `async` (geçici) | `production.rb` | Solid Queue zaman kuralı job'larında tek veritabanıyla kurulacak |
+| `first_response_due_at` `before_create` ile yazılır | `app/models/ticket.rb` | Türetilmiş alan; AGENT.md callback kuralına uygun |
 | Deploy Render'da Docker ile | `Dockerfile` | Render'ın Ruby ortamında Ruby 4.0.7 desteği belirsizdi |
 | Render Health Check Path = `/up` | Render ayarı | Ana sayfa yokken `/` 404 dönüyor ve deploy başarısız sayılıyordu |
 

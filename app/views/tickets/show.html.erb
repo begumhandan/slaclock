@@ -10,6 +10,8 @@
   <p><strong>Çözülme:</strong> <%= l(@ticket.solved_at, format: :short) %></p>
 <% end %>
 
+<%= render "sla_panel", ticket: @ticket %>
+
 <% if @ticket.body.present? %>
   <h2>Açıklama</h2>
   <%= simple_format(@ticket.body) %>

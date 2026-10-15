@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_15_153000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_15_160100) do
   create_table "comments", force: :cascade do |t|
     t.integer "ticket_id", null: false
     t.integer "author_id"
@@ -22,6 +22,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_15_153000) do
     t.index ["ticket_id"], name: "index_comments_on_ticket_id"
   end
 
+  create_table "holidays", force: :cascade do |t|
+    t.date "date", null: false
+    t.string "name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["date"], name: "index_holidays_on_date", unique: true
+  end
+
   create_table "sessions", force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "ip_address"
@@ -29,6 +37,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_15_153000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_sessions_on_user_id"
+  end
+
+  create_table "sla_pauses", force: :cascade do |t|
+    t.integer "ticket_id", null: false
+    t.datetime "started_at", null: false
+    t.datetime "ended_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ticket_id"], name: "index_sla_pauses_on_ticket_id"
   end
 
   create_table "tickets", force: :cascade do |t|
@@ -58,5 +75,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_15_153000) do
   add_foreign_key "comments", "tickets"
   add_foreign_key "comments", "users", column: "author_id"
   add_foreign_key "sessions", "users"
+  add_foreign_key "sla_pauses", "tickets"
   add_foreign_key "tickets", "users", column: "assignee_id"
 end

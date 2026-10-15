@@ -1,0 +1,17 @@
+<section style="border: 1px solid #ccc; padding: 8px 12px; margin: 12px 0;">
+  <h2>İlk yanıt SLA'sı: <%= sla_badge(ticket) %></h2>
+  <p>
+    Öncelik <strong><%= priority_label(ticket.priority) %></strong>,
+    hedef <strong><%= duration_text(SlaPolicy.first_response_minutes(ticket.priority)) %></strong> iş süresi.
+    İş takvimi: Pzt–Cuma 09:00–18:00 (Türkiye saati), resmi tatiller hariç.
+  </p>
+
+  <details>
+    <summary><strong>SLA neden bu saatte?</strong></summary>
+    <ol>
+      <% SlaClock.new(ticket).compute.steps.each do |step| %>
+        <li><%= sla_step_text(step) %></li>
+      <% end %>
+    </ol>
+  </details>
+</section>

@@ -5,6 +5,7 @@ class TicketsController < ApplicationController
 
   def index
     @tickets = Ticket.includes(:assignee).order(created_at: :desc)
+    @tickets = @tickets.sla_breached if params[:filter] == "sla_breached"
   end
 
   def show

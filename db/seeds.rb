@@ -8,3 +8,18 @@ if email.present? && password.present?
     user.password = password
   end
 end
+
+# Resmi tatiller (sabit tarihli olanlar). SLA sayaci bu gunlerde islemez.
+# Dini bayramlar ve yarim gunler henuz yok (README: Yapamadiklarim).
+{
+  "2026-10-29" => "Cumhuriyet Bayramı",
+  "2027-01-01" => "Yılbaşı",
+  "2027-04-23" => "Ulusal Egemenlik ve Çocuk Bayramı",
+  "2027-05-01" => "Emek ve Dayanışma Günü",
+  "2027-05-19" => "Atatürk'ü Anma, Gençlik ve Spor Bayramı",
+  "2027-07-15" => "Demokrasi ve Milli Birlik Günü",
+  "2027-08-30" => "Zafer Bayramı",
+  "2027-10-29" => "Cumhuriyet Bayramı"
+}.each do |date, name|
+  Holiday.find_or_create_by!(date: Date.parse(date)) { |holiday| holiday.name = name }
+end

@@ -1,0 +1,18 @@
+new_ticket:
+  subject: Faturam gelmedi
+  requester_email: ayse@example.com
+  priority: normal
+  status: new
+
+open_ticket:
+  subject: Sifremi sifirlayamiyorum
+  requester_email: mehmet@example.com
+  priority: high
+  status: open
+  assignee: one
+
+closed_ticket:
+  subject: Eski talep
+  requester_email: eski@example.com
+  priority: low
+  status: closed

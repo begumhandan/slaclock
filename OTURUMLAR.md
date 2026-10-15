@@ -37,3 +37,4 @@ Token sayıları oturum kayıtlarından, saat aralıklarına göre sayıldı. Ma
 | Yasak geçişlerin yarısının testi yoktu | Testler `TRANSITIONS` tablosundan otomatik üretiliyor (21/21) |
 | Beklemedeyken yanıt verilip açılan talepte son tarih boş kalıyordu | `transition_to!` düzeltildi, testi eklendi |
 | Arayüz "sizden yanıt beklerken sayaç durur" diyordu, ama durmuyordu | Metin düzeltildi: yalnızca 3. taraf beklenirken durur |
+| Müşteri sayfasından yanıt gönderilemiyordu (canlıda 422) | Gizlilik için konan `Referrer-Policy: no-referrer` tarayıcının `Origin: null` göndermesine, Rails CSRF kontrolünün de isteği reddetmesine yol açıyordu. Testler CSRF kapalı çalıştığı için yakalamadı. Politika `same-origin` yapıldı; CSRF açıkken çalışan bir test eklendi |

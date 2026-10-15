@@ -32,7 +32,7 @@ class CustomerTicketsControllerTest < ActionDispatch::IntegrationTest
   test "link baska sitelere sizdirilmaz ve indekslenmez" do
     get customer_ticket_url(tickets(:open_ticket).access_token)
 
-    assert_equal "no-referrer", response.headers["Referrer-Policy"]
+    assert_equal "same-origin", response.headers["Referrer-Policy"]
     assert_match "noindex", response.headers["X-Robots-Tag"]
   end
 
@@ -89,5 +89,23 @@ class CustomerTicketsControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :not_found
+  end
+
+  test "tarayicidan gelen musteri yaniti CSRF origin kontrolunden gecer" do
+    # Canli hata: no-referrer politikasi yuzunden tarayici "Origin: null" yolluyor, yanit 422 aliyordu.
+    ActionController::Base.allow_forgery_protection = true
+    ticket = tickets(:open_ticket)
+    get customer_ticket_url(ticket.access_token)
+    token = response.body[/name="authenticity_token" value="([^"]+)"/, 1]
+
+    assert_difference("ticket.comments.count", 1) do
+      post customer_ticket_reply_url(ticket.access_token),
+           params: { authenticity_token: token, reply: { body: "Ikinci mesajim" } },
+           headers: { "Origin" => "http://www.example.com" }
+    end
+    assert_redirected_to customer_ticket_url(ticket.access_token)
+    assert_not_equal "no-referrer", response.headers["Referrer-Policy"]
+  ensure
+    ActionController::Base.allow_forgery_protection = false
   end
 end

@@ -30,8 +30,11 @@ class CustomerTicketsController < ApplicationController
     end
 
     # Link baska sitelere "Referer" ile sizmasin, arama motorlari indekslemesin.
+    # "no-referrer" KULLANILMAZ: tarayici o zaman form gonderirken "Origin: null" yollar ve
+    # Rails'in CSRF origin kontrolu musteri yanitini 422 ile reddeder. "same-origin" linki
+    # yalnizca kendi sitemize gonderir, disari sizdirmaz.
     def keep_link_private
-      response.headers["Referrer-Policy"] = "no-referrer"
+      response.headers["Referrer-Policy"] = "same-origin"
       response.headers["X-Robots-Tag"] = "noindex, nofollow"
     end
 end

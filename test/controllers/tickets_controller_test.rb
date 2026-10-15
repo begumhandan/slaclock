@@ -38,6 +38,21 @@ class TicketsControllerTest < ActionDispatch::IntegrationTest
     assert_match tickets(:new_ticket).subject, response.body
   end
 
+  test "temsilci listeyi acinca zaman kurallari uygulanir" do
+    # Render ucretsiz plani uyudugu icin canlida kurallari liste sayfasi calistirir (bkz. AGENT.md).
+    ticket = travel_to(8.days.ago) do
+      Ticket.create!(subject: "Eski bekleyen", requester_email: "a@example.com").tap do |t|
+        t.transition_to!(:open)
+        t.transition_to!(:pending)
+      end
+    end
+
+    sign_in_as(users(:one))
+    get tickets_url
+
+    assert_equal "solved", ticket.reload.status
+  end
+
   test "temsilci talebi kendine atayinca yeni talep acik olur" do
     sign_in_as(users(:one))
     ticket = tickets(:new_ticket)

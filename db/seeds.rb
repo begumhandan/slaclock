@@ -1,9 +1,13 @@
-# Temsilci hesabi. Canlida e-posta ve sifre Render ortam degiskenlerinden
-# (ADMIN_EMAIL, ADMIN_PASSWORD) gelir. Idempotent: hesap zaten varsa dokunmaz.
-email = ENV.fetch("ADMIN_EMAIL", Rails.env.production? ? nil : "temsilci@slaclock.test")
-password = ENV.fetch("ADMIN_PASSWORD", Rails.env.production? ? nil : "slaclock123")
+# Temsilci hesaplari. Canlida e-posta ve sifre Render ortam degiskenlerinden gelir:
+# ADMIN_EMAIL / ADMIN_PASSWORD (asil hesap), DEMO_EMAIL / DEMO_PASSWORD (hocaya verilen demo hesap, istege bagli).
+# Idempotent: hesap zaten varsa dokunmaz.
+[
+  [ ENV.fetch("ADMIN_EMAIL", Rails.env.production? ? nil : "temsilci@slaclock.test"),
+    ENV.fetch("ADMIN_PASSWORD", Rails.env.production? ? nil : "slaclock123") ],
+  [ ENV["DEMO_EMAIL"], ENV["DEMO_PASSWORD"] ]
+].each do |email, password|
+  next if email.blank? || password.blank?
 
-if email.present? && password.present?
   User.find_or_create_by!(email_address: email) do |user|
     user.password = password
   end

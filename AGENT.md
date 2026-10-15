@@ -52,6 +52,7 @@ pending / solved ──(müşteri yanıtı, gizli linkten)──▶ open
 - İş mantığı içeren callback (`before_save`, `after_commit` …) — yasak. İş kuralı açık metotta ya da
   `app/services/` altında bir serviste olur. Callback yalnızca türetilmiş alan için kullanılabilir.
 - Concern kullanılırsa adı davranışını anlatmalı ve buraya yazılmalı.
+  - `Authentication` (`app/controllers/concerns/authentication.rb`): Rails 8 kimlik doğrulama üretecinden gelir; temsilci girişini zorunlu kılar, `allow_unauthenticated_access` ile açılan sayfalar (talep formu, müşteri sayfası, giriş) hariç.
 
 ## 5. Test kuralları
 

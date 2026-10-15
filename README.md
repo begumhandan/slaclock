@@ -63,11 +63,11 @@ Varsayımlar:
 |---|---|---|---|---|
 | Zendesk monolitinin tamamı | ~1,6M | ~16M | çıktı ~320 $ + girdi ~640–1.900 $ ≈ **1.000–2.500 $** (düzeltme turları hariç) | haftalar (tek oturuma sığmaz) |
 | Benim aort dilimim (tahmin) | ~3.000–6.000 (testler dahil) | ~30–60k | formüle göre ~2–8 $; düzeltme turlarıyla **~10–40 $** API ya da mevcut abonelik | **2–3 gün** |
-| Benim aort dilimim (**gerçek**) | ~1.760 (745 Ruby + 306 görünüm + 152 CSS + 561 test) | ~205k çıktı; 85,6M önbellekten okuma + 0,9M önbelleğe yazma | **~46 $** liste fiyatıyla (abonelikle ödendi) | **1 gün** (15 Ekim, molalar dahil ~9,5 saat) |
+| Benim aort dilimim (**gerçek**) | ~2.900 (956 Ruby + 520 görünüm + 341 CSS + 1.089 test) | ~300k çıktı; ~112M önbellekten okuma + ~1,1M önbelleğe yazma | **~60 $** liste fiyatıyla (abonelikle ödendi) | **1 gün** (15 Ekim, molalar dahil ~12 saat) |
 
 **Karşılaştırma için lisans maliyeti:** Zendesk Suite Professional'ın liste fiyatı temsilci başına aylık 115 $ (yıllık ödemede) ([Zendesk fiyatlandırma](https://www.zendesk.com/pricing/)). Uber ölçeğinde 1.000 temsilci için liste fiyatıyla yılda yaklaşık 1,38 milyon $ eder. Enterprise fiyatı açıklanmıyor ve kurumsal indirimleri bilmiyorum; bu rakam sadece büyüklük mertebesini göstermek için.
 
-**Tahmin ile gerçeğin farkı:** Tahminim 10–40 $ idi, gerçek ~46 $ oldu. Fark çıktıdan değil girdiden geliyor: ajan her turda bütün bağlamı (sohbet, dosyalar, loglar) yeniden okuyor. Okunan token, yazılan token'ın yaklaşık 400 katı. Yani maliyeti kod yazmak değil, ajana bağlamı tekrar tekrar "anlatmak" belirliyor. Rakamlar bu proje için tek bir uzun sohbetten ölçüldü (araştırma ve kurulum sorunları dahil). Satır sayıları `wc -l` ile, token sayıları oturum kayıtlarından sayıldı; önbellek fiyatları için standart oranlar (okuma 0,1×, yazma 2×) varsayıldı.
+**Tahmin ile gerçeğin farkı:** Tahminim 10–40 $ idi, gerçek ~60 $ oldu. Fark çıktıdan değil girdiden geliyor: ajan her turda bütün bağlamı (sohbet, dosyalar, loglar) yeniden okuyor. Okunan token, yazılan token'ın yaklaşık 400 katı. Yani maliyeti kod yazmak değil, ajana bağlamı tekrar tekrar "anlatmak" belirliyor. Rakamlar bu proje için tek bir uzun sohbetten ölçüldü (araştırma ve kurulum sorunları dahil). Satır sayıları `wc -l` ile, token sayıları oturum kayıtlarından sayıldı; önbellek fiyatları için standart oranlar (okuma 0,1×, yazma 2×) varsayıldı.
 
 **Sonuç:** Kopyalamanın token maliyeti, lisans maliyetinin yanında küçük kalıyor. Pahalı olan kısım, doğrulama süresi ve ürünün bir sonraki ihtiyacını tasarlamak.
 
@@ -81,7 +81,7 @@ Varsayımlar:
 - _"SLA tracking across multiple time zones and multiple step processes is tricky and sometimes incorrect."_ (Otomotiv sektörü, 30 Eylül 2026, [AWS Marketplace yorumları](https://aws.amazon.com/marketplace/reviews/reviews-list/prodview-3rztyxjwcucg2?page=2), [15 Ekim 2026 arşiv kopyası](https://web.archive.org/web/20261015134218/https://aws.amazon.com/marketplace/reviews/reviews-list/prodview-3rztyxjwcucg2?page=2))
 - _"Standard features like SLA (...) should be more accessible and not require two days of support"_ (Anonim, 9 Ekim 2026, aynı sayfa ve [arşiv kopyası](https://web.archive.org/web/20261015134218/https://aws.amazon.com/marketplace/reviews/reviews-list/prodview-3rztyxjwcucg2?page=2))
 - Zendesk topluluğundaki "Functionality to pause an SLA" fikri: 2017'den beri açık, 47 oy, 66 yanıt. Kullanıcılar on-hold'da (üçüncü taraf ya da geliştirme ekibi beklenirken) SLA'nın durmasını istiyor ([Zendesk Community](https://community.zendesk.com/ideas/functionality-to-pause-an-sla-5356))
-- Zendesk'in kendi dokümanına göre duraklatma yalnızca belirli metriklerde ve standart durumlarda mümkün ([Zendesk yardım makalesi](https://support.zendesk.com/hc/en-us/articles/4408825745690-Can-I-pause-the-SLA-timer-or-reset-it-under-certain-conditions))
+- Zendesk'in kendi dokümanına göre duraklatma yalnızca belirli metriklerde ve standart durumlarda mümkün ([Zendesk yardım makalesi](https://support.zendesk.com/hc/en-us/articles/4408825745690-Can-I-pause-the-SLA-timer-or-reset-it-under-certain-conditions); sayfa bazı otomatik araçlara erişim engeli gösterebiliyor, tarayıcıda açılıyor). Topluluktaki ["SLA time did not pause in pending and on-hold status"](https://community.zendesk.com/support-7/sla-time-did-not-pause-in-pending-and-on-hold-status-14934) başlığı (2017) da aynı şikâyeti taşıyor: On-hold durumunda yanıt sayacı durmuyor
 
 ---
 
@@ -89,15 +89,16 @@ Varsayımlar:
 
 1. https://slaclock.onrender.com adresini açın. Ücretsiz sunucu uyuyorsa ilk açılış 30–60 saniye sürebilir.
 2. **Talep aç** ile giriş yapmadan bir talep oluşturun (öncelik seçin).
-3. **Temsilci girişi** yapın (hesap bilgisi sunumda verilir) → **Talepler** → talebe tıklayın.
-4. **İlk yanıt SLA'sı** kutusunda son tarihi, **"SLA neden bu saatte?"** ile hesabın adımlarını görün.
+   Gönderince size özel **müşteri sayfasına** (`/t/...`) gidersiniz: durum ve ekibin yanıtları burada görünür, buradan yanıt yazılır.
+3. **Temsilci girişi** yapın (demo hesap bilgileri ödev teslim notundadır) → **Talepler** → talebe tıklayın.
+4. **İlk yanıt SLA'sı** kutusunda son tarihi, **"Bu saat nereden çıktı?"** bölümünde hesabın adımlarını görün.
 5. **→ Beklemede (3. taraf)** yapın: SLA ⏸ durur. **→ Açık** yapınca kaldığı yerden devam eder.
 6. Yanıt yazın (iç not ilk yanıt sayılmaz), sonra **Çözüldü → Kapandı**.
 
 ## Testler
 
 ```bash
-bin/rails test     # 80+ test: durum akışı, yasak geçişler, SLA (travel_to), zaman kuralları, ekranlar, güvenlik
+bin/rails test     # 110+ test: durum akışı, yasak geçişler, SLA (travel_to), zaman kuralları, ekranlar, güvenlik
 bin/rubocop
 ```
 

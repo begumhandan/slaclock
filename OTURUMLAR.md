@@ -1,6 +1,6 @@
 # Oturum kaydı
 
-Bu proje tek gün (15 Ekim 2026) içinde, Claude uygulamasında rehberli oturumlarla yapıldı. Kodu ajan hazırladı; dosyaları projeye ben yerleştirdim, testleri kendi bilgisayarımda çalıştırdım, commit ve push'ları ben yaptım (son iki inceleme turunda commit'leri ajan yerelde attı, push'u ben yaptım).
+Bu proje tek gün (15 Ekim 2026) içinde, Claude uygulamasında rehberli oturumlarla yapıldı.
 
 Token sayıları oturum kayıtlarından, saat aralıklarına göre sayıldı. Maliyet Claude Opus 5.5 liste fiyatıyla hesaplandı (girdi 4 $/MTok, çıktı 20 $/MTok; önbellekten okuma 0,1×, önbelleğe yazma 2× varsayıldı). Ödeme abonelikle yapıldı, ayrıca para ödenmedi.
 

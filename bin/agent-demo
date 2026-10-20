@@ -12,6 +12,8 @@ require "net/http"
 require "json"
 require "uri"
 
+$stdout.sync = true # "bekleniyor..." noktalari Windows konsolunda hemen gorunsun
+
 BASE = ENV.fetch("SLACLOCK_URL", "https://slaclock.onrender.com")
 TOKEN = ENV.fetch("AGENT_API_TOKEN") { abort "AGENT_API_TOKEN ortam degiskeni gerekli." }
 

@@ -53,7 +53,25 @@ bağlamı koruyan sentetik bir profil."
 
 ## Yapılanlar ve kanıt
 
-> Commit linkleri ve canlı doğrulama, push'tan sonra bu bölüme eklenecek.
+**Commit'ler:**
+
+| Commit | Ne |
+|---|---|
+| [`9b1c879`](https://github.com/begumhandan/slaclock/commit/9b1c87947504cd9cf3612cc0498a6e64c7a0e840) | Gizlilik maskesi, sentetik profil, gerekçeli erişim, LLM triage ve niyet, ajan API'si, bu dosyanın ilk hali |
+| [`e4b6d4b`](https://github.com/begumhandan/slaclock/commit/e4b6d4b83f55133804bc1af23cf5db06848840b7) | Canlıda bulunan iki sorunun düzeltmesi (model 404, acil/şikâyet talebine asistan yanıtı) |
+
+Değişiklik: 37 dosya, +1.658 satır (uygulama 867, test 430). Testler: **158 test, 442 kontrol, 0 hata**; RuboCop 101 dosya temiz;
+GitHub Actions iki commit'te de yeşil.
+
+**Canlıda doğrulananlar (20 Ekim, slaclock.onrender.com):**
+
+| Talep | Ne oldu |
+|---|---|
+| #61 | Formdan "Ayla Yıldız", telefonlu talep → temsilci ekranında "Elif Öztürk · ~21–22 yaş · mühendislik öğrencisi · Samsun", metinde `[TELEFON]`; sayfada gerçek ad/telefon/e-posta yok (otomatik kontrol edildi) |
+| #62 | Kargo sorusu → asistan bilgi tabanından (`kargo-suresi`) doğru yanıt verdi, talep "Müşteri bekleniyor"a geçti |
+| #63 | Çift çekim şikâyeti → model aciliyeti Düşük→Acil yükseltti **ama yanıt da yayınladı** (hata; aşağıda) |
+| #64 | Aynı şikâyet, düzeltmeden sonra → Acil'e yükseltildi, yanıt yayınlanmadı, **insana devredildi** |
+| #65 | `ruby bin/agent-demo kargo`: ajan API ile talep açtı → asistan persona adıyla ("Selin Hanım") yanıtladı, müşteriye gerçek adıyla gösterildi → ajan "teşekkürler, çözüldü" yazdı → LLM "çözüldü" dedi, talep **Çözüldü** |
 
 **Kod:**
 
@@ -106,13 +124,24 @@ bağlamı koruyan sentetik bir profil."
 - Gerçek adın Türkçe ekli halleri (ör. "Begüm'ün" değil "Begümün") ve "Demir kapı" gibi ad olmayan kullanımlar ayırt edilmiyor.
 - "Bilgi tabanı" küçük (6 madde) ve tamamı isteme ekleniyor; gerçek bir vektör araması (RAG) yok.
 - Temsilci, gerçek veriyi gördükten sonra yanıtına kopyalarsa bu engellenmiyor (yalnızca kayıt tutuluyor).
+- Ajan demosunun "şikâyet" senaryosu (`ruby bin/agent-demo sikayet`) ve "Gerçek veriyi göster" akışı canlıda sunumda
+  gösterilecek; şu an testlerle kanıtlı (`privacy_screen_test.rb`, `ai_triage_job_test.rb`). Aynı şikâyetin formdan
+  açılan hali (#64) canlıda insana devredildi.
+- LLM kararları her zaman doğru değil: #63'te görüldüğü gibi model istemdeki kurala uymayabiliyor. Bu yüzden
+  "yanıt yayınlansın mı?" kararının son kontrolü kodda (kaynak var mı, güven eşiği, insan gerekli mi, acil mi).
 
 ## Zaman
 
-> Push'tan sonra kesin rakamlarla güncellenecek.
-
-- **Agent zamanı / maliyeti:** oturum kayıtlarından sayılacak (geçen hafta: ~410k çıktı token, ~165M önbellek okuma, ~85 $).
-- **İnsan zamanı:** kararlar, Groq anahtarı, Render ayarları, testleri çalıştırma, push.
+- **Toplam süre:** 20 Ekim 13:53–14:40, yaklaşık **45 dakika** (tek oturum, Claude uygulaması, coding agent: Claude).
+- **Agent zamanı:** bu 45 dakikanın neredeyse tamamı. Kod, testler, belgeler ve canlı doğrulama ajanın işi.
+  Oturum kayıtlarından: ~106k çıktı token, ~54M önbellekten okuma, ~0,5M önbelleğe yazma, 95 model çağrısı →
+  liste fiyatıyla **~28 $** (abonelikle ödendi). Geçen hafta tüm proje ~85 $ tutmuştu.
+- **İnsan zamanı (benim):** yaklaşık 15–20 dakika aktif iş:
+  karar (devam), kapsam ve patent sınırı (maskeleme yöntemini açık repoda ne kadar paylaşacağım), Groq hesabı ve anahtarı,
+  Render'a `GROQ_API_KEY`, `AGENT_API_TOKEN`, `GROQ_MODEL` girmek, Render loglarından hatanın gerçek sebebini bulmak,
+  testleri kendi bilgisayarımda 3 kez çalıştırmak, 2 commit + push, ajan demosunu çalıştırmak.
+- **Ajan ne bilmiyordu, ben söyledim:** maskeleme fikrinin bitirme projemle (Context-Shield AI) bağı ve patent kısıtı;
+  anahtarların ve şifrelerin ajana verilmemesi; commit/push'un bende olması (AGENT.md'ye kural olarak yazıldı).
 
 **İlk prompt'um (olduğu gibi):** Ödev metnini olduğu gibi yapıştırdım; ardından ajanın sorduğu dört soruya (teslim zamanı, patent nedeniyle maskeleme yönteminin ne kadar paylaşılacağı, LLM sağlayıcısı, kapsam) cevap verdim.
 

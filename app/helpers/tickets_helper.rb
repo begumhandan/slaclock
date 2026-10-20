@@ -19,6 +19,13 @@ module TicketsHelper
     tag.span(priority_label(priority), class: "prio prio-#{priority}")
   end
 
+  def ai_badge(ticket)
+    case ticket.ai_status
+    when "answered" then tag.span("🤖 AI yanıtladı", class: "ai-badge ai-answered")
+    when "handed_off" then tag.span("🙋 İnsana devredildi", class: "ai-badge ai-handed_off")
+    end
+  end
+
   def initials(email)
     email.to_s.split("@").first.to_s.first(2).upcase
   end

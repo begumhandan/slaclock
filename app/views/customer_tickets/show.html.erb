@@ -27,14 +27,15 @@
     </article>
 
     <% @comments.each do |comment| %>
-      <article class="message <%= comment.from_customer? ? "customer" : "agent" %>">
-        <div class="avatar" aria-hidden="true"><%= comment.from_customer? ? initials(@ticket.requester_email) : "DE" %></div>
+      <article class="message <%= comment.from_customer? ? "customer" : (comment.from_ai? ? "ai" : "agent") %>">
+        <div class="avatar" aria-hidden="true"><%= comment.from_customer? ? initials(@ticket.requester_email) : (comment.from_ai? ? "AI" : "DE") %></div>
         <div class="bubble">
           <div class="bubble-head">
-            <strong><%= comment.from_customer? ? "Siz" : "Destek ekibi" %></strong>
+            <strong><%= comment.from_customer? ? "Siz" : (comment.from_ai? ? "Destek asistanı (yapay zekâ)" : "Destek ekibi") %></strong>
             <span><%= tr_time(comment.created_at) %></span>
           </div>
-          <%= simple_format(comment.body) %>
+          <%= simple_format(comment.from_customer? ? comment.body : @ticket.unmask_for_customer(comment.body)) %>
+          <% if comment.from_ai? %><p class="muted small">Bu yanıt yapay zekâ tarafından bilgi tabanımıza dayanarak yazıldı. Sorununuz sürüyorsa yazın, bir temsilci devralır.</p><% end %>
         </div>
       </article>
     <% end %>

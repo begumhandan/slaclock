@@ -1,0 +1,40 @@
+<section class="panel privacy-card" aria-labelledby="privacy-title">
+  <h2 id="privacy-title">🔒 Gizlilik maskesi</h2>
+  <dl class="props">
+    <dt>Görünen ad</dt><dd><%= ticket.persona_name %></dd>
+    <dt>Profil</dt><dd><%= ticket.persona_summary %></dd>
+    <% found = ticket.privacy_mask.scan([ ticket.subject, ticket.body, *ticket.comments.select(&:from_customer?).map(&:body) ].join("\n")).found %>
+    <% found |= [ :email ] %>
+    <dt>Gizlenen</dt><dd><%= found.map { |kind| PrivacyMask::LABELS[kind] }.join(", ") %></dd>
+  </dl>
+  <p class="muted small">Bu ekrandaki ve yapay zekâya giden metinde müşterinin gerçek kişisel verisi yok.</p>
+
+  <% if revealed %>
+    <div class="revealed">
+      <strong>Gerçek veri (bu görüntüleme kayda geçti)</strong>
+      <dl class="props">
+        <dt>E-posta</dt><dd><%= ticket.requester_email %></dd>
+        <dt>Ad</dt><dd><%= ticket.requester_name.presence || "—" %></dd>
+        <dt>Doğum yılı</dt><dd><%= ticket.birth_year || "—" %></dd>
+        <dt>Meslek</dt><dd><%= ticket.occupation.presence || "—" %></dd>
+        <dt>Şehir</dt><dd><%= ticket.city.presence || "—" %></dd>
+      </dl>
+    </div>
+  <% else %>
+    <%= form_with url: reveal_ticket_path(ticket), method: :post, data: { turbo: false }, class: "reveal-form" do |form| %>
+      <%= form.label :reason, "Gerçek veriyi görmem gerekiyor, çünkü:", class: "muted small" %>
+      <%= form.text_field :reason, required: true, minlength: 5, maxlength: 300, placeholder: "ör. kargo firmasına adres iletilecek" %>
+      <%= form.submit "Gerçek veriyi göster", class: "button-quiet" %>
+    <% end %>
+  <% end %>
+
+  <% logs = ticket.pii_access_logs.recent_first.includes(:user).limit(5) %>
+  <% if logs.any? %>
+    <h3>Erişim kaydı</h3>
+    <ul class="access-log">
+      <% logs.each do |log| %>
+        <li><span class="num"><%= tr_time(log.created_at) %></span> · <%= log.user.email_address %> · “<%= log.reason %>”</li>
+      <% end %>
+    </ul>
+  <% end %>
+</section>

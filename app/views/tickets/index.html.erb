@@ -1,9 +1,12 @@
 <div class="page-head">
   <div>
-    <h1><%= { "awaiting" => "Yanıt bekleyenler", "sla_breached" => "SLA'sı geçenler", "on_hold" => "Beklemedekiler", "solved_today" => "Bugün çözülenler" }.fetch(@filter, "Talep kuyruğu") %></h1>
+    <h1><%= { "awaiting" => "Yanıt bekleyenler", "sla_breached" => "SLA'sı geçenler", "on_hold" => "Beklemedekiler", "solved_today" => "Bugün çözülenler", "handed_off" => "İnsana devredilenler" }.fetch(@filter, "Talep kuyruğu") %></h1>
     <p>En yeni talep en üstte. Kırmızı çizgi: süresi geçti. Kehribar çizgi: süresinin son çeyreğinde.</p>
   </div>
-  <%= link_to "Tümünü göster", tickets_path, class: "button button-quiet" unless @filter == "all" %>
+  <div class="page-actions">
+    <%= link_to "İnsana devredilenler (#{Ticket.where(ai_status: "handed_off").where.not(status: %w[solved closed]).count})", tickets_path(filter: "handed_off"), class: "button button-quiet" %>
+    <%= link_to "Tümünü göster", tickets_path, class: "button button-quiet" unless @filter == "all" %>
+  </div>
 </div>
 
 <nav class="pulse" aria-label="Kuyruk özeti">
@@ -31,8 +34,8 @@
       <%= link_to ticket, class: "queue-row sla-#{info[:state]}" do %>
         <span class="id num">#<%= ticket.id %></span>
         <span>
-          <span class="subject"><%= ticket.subject %></span>
-          <span class="requester"><%= ticket.requester_email %></span>
+          <span class="subject"><%= ticket.agent_subject %></span>
+          <span class="requester">🔒 <%= ticket.persona_name %> · <%= ticket.persona_summary %><%= ai_badge(ticket) %></span>
         </span>
         <span><%= status_chip(ticket.status) %></span>
         <span><%= priority_tag(ticket.priority) %></span>

@@ -1,0 +1,22 @@
+# SLA Clock
+
+> Destek talebi sistemi. Yapay zekâ ajanları müşteri adına talep açabilir, durumunu izleyebilir ve yanıt yazabilir.
+> Müşterinin kişisel verisi destek tarafında (insan ya da yapay zekâ) maskeli görünür; ajanın ek bir şey yapmasına gerek yok.
+
+## API (JSON)
+
+Kimlik: `Authorization: Bearer <AGENT_API_TOKEN>` (anahtarı site sahibinden alın).
+
+- `POST /api/v1/tickets` — talep aç.
+  Alanlar: `requester_email` (zorunlu), `subject` (zorunlu), `body`, `priority` (low|normal|high|urgent),
+  isteğe bağlı profil: `requester_name`, `birth_year`, `occupation`, `city`.
+  Yanıt (201): `id`, `status`, `status_label`, `first_response_due_at`, `customer_url`, `api_url`, `messages`.
+- `GET /api/v1/tickets/{token}` — durum ve mesajlar (`from`: customer | assistant | support).
+- `POST /api/v1/tickets/{token}/replies` — müşteri adına yanıt. Alan: `body`.
+  "Sorun çözüldü, teşekkürler" anlamındaki yanıt talebi yeniden açmaz; yeni bilgi ya da yeni sorun açar.
+
+## Kurallar
+
+- İlk yanıt süresi önceliğe göre iş saati olarak işler (Pzt–Cuma 09:00–18:00, İstanbul; resmi tatiller hariç).
+- Destek asistanı yalnızca bilgi tabanına dayanarak yanıt verir; emin değilse talebi bir insana devreder.
+- Dakikada en fazla 20 istek.

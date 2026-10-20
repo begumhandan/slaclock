@@ -79,6 +79,37 @@ pending / solved ──(müşteri yanıtı, gizli linkten)──▶ open
 | Müşteri sayfası (gizli link `/t/:token`) | `app/controllers/customer_tickets_controller.rb`, `app/views/customer_tickets/show.html.erb` |
 | "Müşteri yanıt verince talep açılmasın" | `app/models/ticket.rb` (`CUSTOMER_REPLY_REOPENS`, `add_customer_reply!`) |
 | Müşteri hangi durum adlarını görür? | `app/helpers/customer_tickets_helper.rb` (`CUSTOMER_STATUS_LABELS`) |
+| "Şu veri de maskelensin" (ör. adres, plaka) | `app/services/privacy_mask.rb` (`RULES`) |
+| "Yaş aralığı 5 yıllık olsun" / yeni meslek grubu | `app/services/synthetic_persona.rb` (`AGE_BAND`, `FIELDS`) |
+| Gerçek veriye kim baktı? | `app/models/pii_access_log.rb`, `TicketsController#reveal` |
+| "Asistan daha temkinli olsun" | `app/services/ticket_triage.rb` (`MIN_CONFIDENCE`) |
+| Asistan neye dayanarak yanıt verir? | `config/knowledge_base.yml` |
+| "Teşekkür" yanıtı talebi açsın mı? | `app/services/reply_intent.rb` + `Ticket#add_customer_reply!` |
+| Yapay zekâ akışı (triage → yanıt / devir) | `app/jobs/ai_triage_job.rb` |
+| Ajan API'si | `app/controllers/api/v1/tickets_controller.rb`, belgesi `public/llms.txt` |
+
+## 6b. Gizlilik ve yapay zekâ kuralları (2. hafta)
+
+- **Temsilci ekranına ve LLM'e ham kişisel veri gitmez.** Her zaman `Ticket#agent_subject`, `#agent_body`,
+  `Comment#agent_body` ya da `Ticket#privacy_mask.apply(...)` kullanılır. `subject`/`body`/`requester_email`
+  temsilci görünümüne yalnızca `@revealed` (gerekçeli erişim, `PiiAccessLog`) varken basılır.
+- Müşteriye kendi verisi gösterilir (`/t/:token`, ajan API'si); temsilcinin persona adıyla hitabı `unmask_for_customer` ile gerçek ada çevrilir.
+- `LlmClient` dışında hiçbir yerden LLM çağrılmaz. Anahtar yoksa (`GROQ_API_KEY`) uygulama yapay zekâsız eski kurallarla çalışmalı.
+- Asistan yalnızca `config/knowledge_base.yml`'deki bir maddeye dayanarak yanıt yazar; kaynak göstermiyorsa ya da emin değilse insana devreder.
+- LLM kararları (aciliyet, niyet) anahtar kelime eşleştirmesiyle **taklit edilmez**. Kodda yalnızca güvenlik kontrolleri olur
+  (kaynak var mı, güven eşiği, öncelik asla düşürülmez).
+- Testlerde gerçek LLM çağrılmaz: `LlmClient.adapter = FakeLlm.new(...)`. Ham verinin LLM'e gitmediği `FakeLlm#all_prompts` ile test edilir.
+
+## 6c. Deploy (Render) — ajan bunu buradan bilir
+
+- Canlı: https://slaclock.onrender.com, Render ücretsiz plan, **Docker** (`Dockerfile`, Ruby 4.0.7).
+- `main` dalına push → Render otomatik deploy eder. **Ajan push etmez; push'u kullanıcı yapar.** Ajan en fazla yerel commit atar.
+- Açılışta `bin/docker-entrypoint`: `db:prepare` (migration'lar) + `db:seed`. Yeni migration ek adım istemez.
+- Health check: `/up` (Render panelinde ayarlı).
+- Ortam değişkenleri Render panelinde (repoda değil): `DATABASE_URL`, `RAILS_MASTER_KEY`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`,
+  `DEMO_EMAIL`, `DEMO_PASSWORD`, `GROQ_API_KEY`, `GROQ_MODEL` (isteğe bağlı), `AGENT_API_TOKEN`.
+  Ajan bu değerleri **asla** istemez, görmez, dosyaya yazmaz.
+- `bin/render-build.sh` eski, kullanılmıyor (Docker'a geçmeden önceki Ruby ortamı için yazılmıştı).
 
 ## 7. Konvansiyondan sapmalar (neden?)
 
@@ -93,6 +124,8 @@ pending / solved ──(müşteri yanıtı, gizli linkten)──▶ open
 | Canlıda Active Job `async`, zamanlanmış iş yok | `production.rb` | Render ücretsiz planı 15 dk sonra uyuyor; zamanlanmış iş güvenilir değil. Zaman kuralları temsilci talep listesini açtığında da uygulanıyor |
 | Testler tek iş parçacığında | `test/test_helper.rb` | 50+ testte Rails thread paralelliği SQLite'ı kilitliyordu |
 | `first_response_due_at` `before_create` ile yazılır | `app/models/ticket.rb` | Türetilmiş alan; AGENT.md callback kuralına uygun |
+| Persona ve maskeli metin `before_create` ile yazılır | `ticket.rb`, `comment.rb` | Türetilmiş alanlar; iş kuralı değil |
+| Ajan API'si `ActionController::API`'den türer | `app/controllers/api/v1/` | Oturum/CSRF yok, Bearer token ile kimlik |
 | Deploy Render'da Docker ile | `Dockerfile` | Render'ın Ruby ortamında Ruby 4.0.7 desteği belirsizdi |
 | E-posta SMTP değil Resend HTTPS API ile | `config/initializers/resend_delivery.rb` | Render ücretsiz planı 25/465/587 portlarını kapatıyor (Eylül 2025) |
 | Arayüz dili Türkçe (`default_locale = :tr`) | `config/locales/tr.yml` | Hata ve alan adları Türkçe; rails-i18n gem'i yerine kendi çevirimiz |

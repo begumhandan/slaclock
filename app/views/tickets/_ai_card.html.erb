@@ -1,0 +1,17 @@
+<section class="panel ai-card" aria-labelledby="ai-title">
+  <h2 id="ai-title">🤖 Yapay zekâ</h2>
+  <% if ticket.ai_status.blank? %>
+    <p class="muted">Asistan talebi inceliyor… (birkaç saniye sonra sayfayı yenileyin)</p>
+  <% elsif ticket.ai_status.in?(%w[disabled error]) %>
+    <p class="muted"><%= Ticket::AI_STATUS_LABELS[ticket.ai_status] %>. Talep klasik kurallarla işleniyor.</p>
+  <% else %>
+    <p><span class="chip ai-<%= ticket.ai_status %>"><%= Ticket::AI_STATUS_LABELS[ticket.ai_status] %></span></p>
+    <dl class="props">
+      <% if ticket.ai_summary.present? %><dt>Özet</dt><dd class="wrap"><%= ticket.ai_summary %></dd><% end %>
+      <% if ticket.ai_category.present? %><dt>Kategori</dt><dd><%= ticket.ai_category %></dd><% end %>
+      <% if ticket.ai_priority.present? %><dt>Aciliyet</dt><dd><%= priority_label(ticket.ai_priority) %></dd><% end %>
+      <% if ticket.ai_reason.present? %><dt>Gerekçe</dt><dd class="wrap"><%= ticket.ai_reason %></dd><% end %>
+    </dl>
+    <p class="muted small">Yapay zekâ yalnızca maskeli metni gördü. Yanıtları yalnızca bilgi tabanına dayanabilir; dayanamazsa talebi size devreder.</p>
+  <% end %>
+</section>

@@ -1,0 +1,73 @@
+#!/usr/bin/env ruby
+# Agent-first canli demo: musteri tarafindaki bir "ajan" gibi davranir.
+#   1. API ile talep acar (icinde telefon ve TC no gibi kisisel veriler var)
+#   2. Destek asistaninin yanitini bekler (yanitlar ya da insana devreder)
+#   3. Asistan yanitladiysa "tesekkurler, cozuldu" yazar -> talep cozulur (LLM niyet karari)
+#
+# Kullanim (PowerShell):
+#   $env:AGENT_API_TOKEN="..."; ruby bin/agent-demo kargo   # asistanin yanitlayabilecegi talep
+#   $env:AGENT_API_TOKEN="..."; ruby bin/agent-demo sikayet # insana devredilecek talep
+# Adres varsayilan olarak canli site; degistirmek icin: $env:SLACLOCK_URL="http://localhost:3000"
+require "net/http"
+require "json"
+require "uri"
+
+BASE = ENV.fetch("SLACLOCK_URL", "https://slaclock.onrender.com")
+TOKEN = ENV.fetch("AGENT_API_TOKEN") { abort "AGENT_API_TOKEN ortam degiskeni gerekli." }
+
+SCENARIOS = {
+  "kargo" => {
+    subject: "Siparişim ne zaman gelir?",
+    body: "Merhaba, 3 gün önce sipariş verdim ama hâlâ kargoya verilmedi. Ne kadar sürer? " \
+          "Ulaşmak isterseniz telefonum 0532 123 45 67. Teşekkürler, Ayla Yıldız",
+    priority: "normal"
+  },
+  "sikayet" => {
+    subject: "Kartımdan iki kez para çekildi, iade istiyorum",
+    body: "Aynı sipariş için kartımdan iki kez 2.450 TL çekildi. TC kimlik no 12345678901, " \
+          "kart 4111 1111 1111 1111. Bugün çözülmezse tüketici hakem heyetine başvuracağım!",
+    priority: "low"
+  }
+}.freeze
+
+def call(method, path, body = nil)
+  uri = URI.join(BASE, path)
+  request = (method == :get ? Net::HTTP::Get : Net::HTTP::Post).new(uri, "Content-Type" => "application/json",
+                                                                         "Authorization" => "Bearer #{TOKEN}")
+  request.body = body.to_json if body
+  response = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https", read_timeout: 60) { |h| h.request(request) }
+  abort "HTTP #{response.code}: #{response.body}" unless response.is_a?(Net::HTTPSuccess)
+  JSON.parse(response.body)
+end
+
+def show(messages)
+  messages.each { |m| puts "  [#{m["from"]}] #{m["body"]}" }
+end
+
+scenario = SCENARIOS.fetch(ARGV[0] || "kargo") { abort "Senaryo: #{SCENARIOS.keys.join(" | ")}" }
+puts "Ajan: talep aciliyor -> #{BASE}"
+ticket = call(:post, "/api/v1/tickets", scenario.merge(
+  requester_email: "ayla.demo@example.com", requester_name: "Ayla Yıldız",
+  birth_year: 2004, occupation: "Yazılım mühendisliği öğrencisi", city: "Samsun"))
+puts "Talep ##{ticket["id"]} acildi. Durum: #{ticket["status_label"]}"
+puts "Musteri sayfasi: #{ticket["customer_url"]}"
+
+print "Destek asistani bekleniyor"
+20.times do
+  sleep 3
+  print "."
+  ticket = call(:get, URI(ticket["api_url"]).path)
+  break if ticket["handled_by"]
+end
+puts
+
+if ticket["handled_by"] == "assistant"
+  puts "Asistan yanitladi:"
+  show(ticket["messages"])
+  puts "Ajan: 'tesekkurler, sorun cozuldu' yaziyor..."
+  ticket = call(:post, "#{URI(ticket["api_url"]).path}/replies", { body: "Tamamdır, bilgi için teşekkürler, sorunum çözüldü." })
+  puts "Son durum: #{ticket["status_label"]}"
+else
+  puts "Asistan yanitlamadi (#{ticket["handled_by"] || "zaman asimi"}): talep bir insana devredildi. Durum: #{ticket["status_label"]}"
+  puts "Temsilci ekraninda 'Insana devredilenler' listesine bakin."
+end

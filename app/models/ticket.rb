@@ -39,12 +39,17 @@ class Ticket < ApplicationRecord
   belongs_to :assignee, class_name: "User", optional: true
   has_many :comments, dependent: :destroy
   has_many :sla_pauses, dependent: :destroy
+  has_many :pii_access_logs, dependent: :destroy
 
   # Turetilmis alan: musterinin gizli linkindeki tahmin edilemeyen anahtar (/t/:access_token).
   has_secure_token :access_token
 
   # Turetilmis alan: ilk yanit son tarihi (SlaClock hesaplar). AGENT.md: callback yalnizca turetilmis alan icin.
   before_create { self.first_response_due_at = SlaClock.new(self).compute.due_at }
+
+  # Turetilmis alanlar: sentetik profil ve maskeli konu/metin (bkz. AGENT.md "Gizlilik kurallari").
+  # Temsilci ekrani ve LLM yalnizca bunlari gorur; gercek veri gerekceli erisimle acilir.
+  before_create :apply_privacy_layer
 
   # Ilk temsilci yaniti bekleyen, sayaci isleyen talepler.
   scope :awaiting_first_response, -> { where(first_responded_at: nil, status: %w[new open pending]) }
@@ -57,6 +62,17 @@ class Ticket < ApplicationRecord
   validates :subject, presence: true, length: { maximum: 200 }
   validates :body, length: { maximum: 10_000 }
   validates :requester_email, presence: true, length: { maximum: 254 }, format: { with: URI::MailTo::EMAIL_REGEXP }
+  validates :requester_name, :occupation, length: { maximum: 100 }
+  validates :city, length: { maximum: 60 }
+  validates :birth_year, numericality: { only_integer: true, in: 1900..2020 }, allow_nil: true
+  validates :source, inclusion: { in: %w[web api] }
+
+  AI_STATUS_LABELS = {
+    "answered" => "Yapay zekâ yanıtladı",
+    "handed_off" => "İnsana devredildi",
+    "disabled" => "Yapay zekâ kapalı",
+    "error" => "Yapay zekâ yanıt veremedi"
+  }.freeze
 
   def can_transition_to?(target)
     TRANSITIONS.fetch(status, []).include?(target.to_s)
@@ -157,14 +173,109 @@ class Ticket < ApplicationRecord
   end
 
   # Musteri yaniti (gizli linkten gelir, yazari yoktur). Ilk yanit SLA'sini etkilemez.
-  # Musteri bekleniyorsa ya da talep cozulmusse talep yeniden acilir (bkz. AGENT.md durum akisi).
+  # Musteri bekleniyorsa ya da talep cozulmusse ne olacagina LLM karar verir (ReplyIntent):
+  #   - "sorun cozuldu / tesekkurler" -> cozulmus talep kapali kalir, bekleyen talep cozulur
+  #   - diger her sey (yeni bilgi, yeni sorun) -> talep yeniden acilir
+  # LLM kapaliysa eski kural: talep yeniden acilir. (Anahtar kelime eslestirmesi YOK.)
   def add_customer_reply!(body:)
     raise InvalidTransition, "Kapalı talebe yanıt yazılamaz. Yeni bir talep açabilirsiniz." if closed?
 
+    intent = ReplyIntent.classify(self, privacy_mask.apply(body)) if status.in?(CUSTOMER_REPLY_REOPENS) && body.present?
+
     transaction do
-      comment = comments.create!(author: nil, body: body, internal: false)
-      transition_to!(:open) if status.in?(CUSTOMER_REPLY_REOPENS)
+      comment = comments.create!(author: nil, body: body, internal: false, intent: intent)
+      if intent == "resolved"
+        transition_to!(:solved) if status == "pending"
+      elsif status.in?(CUSTOMER_REPLY_REOPENS)
+        transition_to!(:open)
+      end
       comment
     end
+  end
+
+  # --- Gizlilik maskesi -------------------------------------------------------------
+
+  def persona
+    SyntheticPersona.for(email: requester_email, birth_year: birth_year, occupation: occupation, city: city)
+  end
+
+  def persona_name
+    self[:persona_name].presence || persona.name
+  end
+
+  def persona_summary
+    self[:persona_summary].presence || persona.summary
+  end
+
+  def privacy_mask
+    PrivacyMask.new(real_name: requester_name, persona_name: persona_name)
+  end
+
+  # Temsilcinin ve LLM'in gordugu konu/metin. Eski kayitta maske yoksa aninda uretilir; ham veriye dusulmez.
+  def agent_subject
+    masked_subject.presence || privacy_mask.apply(subject)
+  end
+
+  def agent_body
+    masked_body || privacy_mask.apply(body)
+  end
+
+  # Temsilci musteriye persona adiyla hitap eder ("Merhaba Ayse"); musteri kendi adini gorur.
+  def unmask_for_customer(text)
+    real_first = requester_name.to_s.split.first
+    return text if real_first.blank?
+
+    persona_first = persona_name.split.first
+    text.to_s.gsub(/(?<![[:alpha:]])#{Regexp.escape(persona_first)}(?![[:alpha:]])/, real_first)
+  end
+
+  def apply_privacy_layer
+    built = persona
+    self.persona_name = built.name
+    self.persona_summary = built.summary
+    mask = privacy_mask
+    self.masked_subject = mask.apply(subject)
+    self.masked_body = mask.apply(body)
+  end
+
+  # --- Yapay zeka katmani (AiTriageJob kullanir) ---------------------------------
+
+  # Asistanin herkese acik yaniti. Ilk yanit sayilir; talep "musteri bekleniyor"a gecer.
+  def add_ai_reply!(body:)
+    raise InvalidTransition, "Kapalı talepte işlem yapılamaz" if closed?
+
+    transaction do
+      comment = comments.create!(author: nil, ai_generated: true, body: body, internal: false)
+      transition_to!(:open) if status == "new"
+      update!(first_responded_at: comment.created_at) if first_responded_at.nil?
+      transition_to!(:pending) if status == "open"
+      comment
+    end
+  end
+
+  # Insana devir: talep kuyrukta kalir, temsilciye nedenini anlatan bir ic not dusulur.
+  def record_handoff!(reason)
+    transaction do
+      comments.create!(author: nil, ai_generated: true, internal: true,
+                       body: "İnsana devredildi: #{reason.presence || "asistan emin değil"}")
+      update!(ai_status: "handed_off")
+    end
+  end
+
+  # LLM daha yuksek oncelik onerirse oncelik yukseltilir (asla dusurulmez) ve SLA yeniden hesaplanir.
+  def escalate_priority!(suggested, reason:)
+    return false unless suggested.to_s.in?(self.class.priorities.keys)
+    return false unless self.class.priorities[suggested.to_s] > self.class.priorities[priority]
+    return false if first_responded_at
+
+    from = priority
+    transaction do
+      self.priority = suggested
+      self.first_response_due_at = SlaClock.new(self).compute.due_at
+      save!
+      comments.create!(author: nil, ai_generated: true, internal: true,
+                       body: "Öncelik yükseltildi (#{from} → #{suggested}): #{reason}")
+    end
+    true
   end
 end

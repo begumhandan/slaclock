@@ -31,6 +31,33 @@
           <%= form.select :priority, Ticket.priorities.keys.map { |p| [ priority_label(p), p ] } %>
         </div>
 
+        <fieldset class="privacy-fields">
+          <legend>Sizi tanımamıza yardımcı olun <span class="muted">(isteğe bağlı)</span></legend>
+          <p class="hint">🔒 Destek ekibimiz ve yapay zekâ asistanımız bu bilgileri doğrudan görmez. Yalnızca
+            genelleştirilmiş bir profil görürler (ör. “~21–22 yaş · mühendislik öğrencisi · Samsun”) ve size takma adla hitap ederler.
+            Gerçek bilgilerinize erişim gerekçe ister ve kayda geçer.</p>
+          <div class="field-row">
+            <div class="field">
+              <%= form.label :requester_name, "Adınız" %>
+              <%= form.text_field :requester_name, autocomplete: "name", maxlength: 100 %>
+            </div>
+            <div class="field">
+              <%= form.label :birth_year, "Doğum yılınız" %>
+              <%= form.number_field :birth_year, min: 1900, max: 2020, inputmode: "numeric" %>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <%= form.label :occupation, "Mesleğiniz / okulunuz" %>
+              <%= form.text_field :occupation, maxlength: 100, placeholder: "ör. Yazılım mühendisliği öğrencisi" %>
+            </div>
+            <div class="field">
+              <%= form.label :city, "Şehir" %>
+              <%= form.text_field :city, maxlength: 60 %>
+            </div>
+          </div>
+        </fieldset>
+
         <%= form.submit "Talebi gönder", class: "button-large" %>
       <% end %>
     </div>

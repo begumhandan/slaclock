@@ -1,0 +1,36 @@
+# Asistanin yanit verirken DAYANABILECEGI tek bilgi kaynagi (bilgi tabani).
+# Asistan buradaki maddelerden birine dayanamiyorsa yanit yazmaz, talebi insana devreder.
+# Ornek bir e-ticaret sirketinin destek politikasi (kurgusal).
+- id: kargo-suresi
+  title: Kargo ve teslimat süresi
+  content: >-
+    Siparişler iş günlerinde 1-2 gün içinde kargoya verilir. Kargoya verildikten sonra teslimat
+    büyükşehirlerde 1-2, diğer illerde 2-4 iş günü sürer. Kargo takip numarası "Siparişlerim"
+    sayfasında görünür. 5 iş gününü geçen gecikmelerde kargo firmasıyla iletişime geçeriz.
+- id: iade
+  title: İade ve değişim
+  content: >-
+    Ürünler teslimattan itibaren 14 gün içinde iade edilebilir. İade için "Siparişlerim > İade talebi"
+    adımıyla ücretsiz iade kodu alınır. Para iadesi ürün depoya ulaştıktan sonra 3 iş günü içinde
+    ödeme yapılan karta yapılır; bankaya yansıması 7 güne kadar sürebilir. Hasarlı ürünlerde fotoğraf istenir.
+- id: odeme-hatasi
+  title: Ödeme hatası ve 3D Secure
+  content: >-
+    3D Secure sayfası hata veriyorsa kartın internet alışverişine açık olduğunu bankadan kontrol edin,
+    tarayıcı önbelleğini temizleyip tekrar deneyin. Hesabınızdan para çekildiği hâlde sipariş oluşmadıysa
+    tutar 3 iş günü içinde otomatik iade edilir.
+- id: sifre
+  title: Şifre ve hesap erişimi
+  content: >-
+    Şifrenizi giriş sayfasındaki "Şifremi unuttum" bağlantısıyla sıfırlayabilirsiniz. Bağlantı 15 dakika
+    geçerlidir. Hesabınız kilitlendiyse 30 dakika sonra tekrar deneyin.
+- id: fatura
+  title: Fatura
+  content: >-
+    Faturalar sipariş kargoya verildiğinde e-posta ile gönderilir ve "Siparişlerim" sayfasından indirilebilir.
+    Kurumsal fatura için vergi numarası sipariş sırasında girilmelidir; sonradan değiştirilemez.
+- id: adres-degisikligi
+  title: Teslimat adresi değişikliği
+  content: >-
+    Sipariş kargoya verilmeden önce teslimat adresi "Siparişlerim" sayfasından değiştirilebilir.
+    Kargoya verildikten sonra adres değişikliği yapılamaz; kargo firmasının şubesinden teslim alınabilir.

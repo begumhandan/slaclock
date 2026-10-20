@@ -8,6 +8,20 @@
 
 ---
 
+## 2. hafta: Gizlilik maskesi + yapay zekâ ajanı → [CHALLENGE_LOG.md](CHALLENGE_LOG.md)
+
+**Destek tarafı — insan temsilci de, yapay zekâ ajanı da — müşterinin gerçek kişisel verisini görmeden çalışır.**
+
+- Temsilci gerçek kimlik yerine **sentetik profil** görür: "Zeynep Kaya · ~21–22 yaş · mühendislik öğrencisi · Samsun".
+  Telefon, TC no, e-posta, IBAN, kart numarası metinde `[TELEFON]`, `[TC_NO]`… olarak görünür.
+  Gerçek veri yalnızca **gerekçe yazılarak** açılır ve **kayda geçer**.
+- Kategori, aciliyet ve "teşekkür mesajı talebi açsın mı?" kararlarını **LLM** (Groq) verir; LLM'e **yalnızca maskeli metin** gider.
+  Asistan yalnızca bilgi tabanına (`config/knowledge_base.yml`) dayanarak yanıt yazar, dayanamazsa **insana devreder**.
+- **Ajanlar için API:** müşteri tarafındaki bir ajan talep açar, izler, yanıt yazar (`/api/v1/tickets`, belge: [`/llms.txt`](https://slaclock.onrender.com/llms.txt)).
+  Canlı demo: `ruby bin/agent-demo kargo` ve `ruby bin/agent-demo sikayet`.
+
+---
+
 ## Aort dilimi
 
 **Talep gelir → atanır → yanıtlanır → çözülür**, ilk yanıt SLA'sıyla birlikte.
@@ -98,7 +112,7 @@ Varsayımlar:
 ## Testler
 
 ```bash
-bin/rails test     # 110+ test: durum akışı, yasak geçişler, SLA (travel_to), zaman kuralları, ekranlar, güvenlik
+bin/rails test     # 150+ test: durum akışı, yasak geçişler, SLA (travel_to), zaman kuralları, gizlilik maskesi, yapay zekâ (sahte LLM ile), ajan API'si
 bin/rubocop
 ```
 
@@ -119,7 +133,9 @@ Windows'ta komutların başına `ruby` ekleyin (`ruby bin/rails server`). Window
 - **Ekip başına farklı saat dilimi yok.** SLA, tek bir iş takvimine (İstanbul, Pzt–Cuma 09:00–18:00) göre hesaplanıyor. Yorumdaki "birden çok saat dilimi" acısının yalnızca ilk adımını çözdüm: hesap saat dilimine ve tatile göre doğru ve açıklanabilir, ama ekip veya marka başına ayrı takvim seçilemiyor.
 - **Dini bayramlar ve arife yarım günleri takvimde yok.** Yalnızca sabit tarihli resmi tatiller seed ile ekleniyor; tatil arayüzden eklenemiyor.
 - **Yalnızca ilk yanıt SLA'sı var.** "Sonraki yanıt süresi" ve "çözüm süresi" SLA'ları yok.
-- **Öncelik sonradan değiştirilemiyor.** Talep açılırken seçiliyor; değişseydi SLA'nın yeniden hesaplanması gerekirdi.
+- **Temsilci önceliği elle değiştiremiyor.** Talep açılırken müşteri seçiyor; yalnızca yapay zekâ daha yüksek bir aciliyet görürse yükseltiyor (SLA yeniden hesaplanıyor, öncelik asla düşürülmüyor).
+- **Gizlilik maskesi bilerek basit.** Düz kurallarla e-posta, telefon, TC no (doğrulamasız, 11 haneli her sayı), IBAN, kart numarası ve formda verilen ad maskeleniyor. Adres, plaka ve formda verilmemiş isimler yakalanmıyor. Bitirme projemdeki daha güçlü yöntemler patent süreci nedeniyle bu açık repoda yok.
+- **Bilgi tabanı küçük ve vektör araması yok.** 6 maddenin tamamı LLM istemine ekleniyor (gerçek RAG değil); asistan kaynak göstermezse yanıt yayınlanmıyor.
 - **Zamanlanmış iş çalışmıyor.** Render ücretsiz planı uygulamayı 15 dakika sonra uyutuyor. Otomatik çözme ve kapanma kuralları `TimeRulesJob` olarak yazıldı, ama canlıda temsilci talep listesini açtığında uygulanıyor.
 - **Şifre sıfırlama canlıda çalışmıyor, bu yüzden "Şifremi unuttum" linki gizlendi.** Render'ın ücretsiz planı SMTP portlarını kapattığı için e-postayı Resend'in HTTPS API'si ile gönderecek kodu yazdım (`config/initializers/resend_delivery.rb`, testli). E-posta hazırlanıp Resend'e ulaşıyor, ama Resend canlıdaki API anahtarını `401 API key is invalid` diyerek reddetti; birkaç denemede çözemedim. Bu yüzden canlıda şifre sıfırlama sayfaları da kapalı (`config.x.password_reset_enabled = false`, `production.rb`); adres elle yazılsa bile "bağlantı gönderildi" gibi yanlış bir mesaj gösterilmiyor. Anahtar düzeltilince bu ayar `true` yapılıp `app/views/sessions/new.html.erb` içindeki link geri açılabilir.
 - **Temsilci yönetimi yok.** Temsilci hesabı seed ile oluşturuluyor; arayüzden kayıt veya ekip yönetimi yok.

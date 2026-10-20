@@ -3,15 +3,18 @@
 #   - LLM'e yalnizca maskeli metin gider (Ticket#agent_subject / #agent_body).
 #   - Asistan yalnizca bilgi tabanindaki (config/knowledge_base.yml) bir maddeye dayanarak yanit yazabilir;
 #     kaynak gostermezse ya da emin degilse talep insana devredilir (halusinasyonu azaltmak icin).
+#   - LLM'in KENDI karari "insan gerekli" ya da "acil" ise asistan yanit yazsa bile yayinlanmaz.
+#     (Canlida ilk denemede model, hukuki tehdit iceren cift cekim sikayetine bilgi tabanindan
+#     yanlis bir madde uydurup yanit verdi; bu kural o yuzden eklendi. Bkz. CHALLENGE_LOG.)
 # Kod yeri: "Asistan daha cesur/temkinli olsun" -> MIN_CONFIDENCE.
 class TicketTriage
   CATEGORIES = %w[teslimat iade odeme hesap fatura teknik sikayet diger].freeze
   MIN_CONFIDENCE = 0.75
 
   Result = Struct.new(:category, :priority, :summary, :reason, :answer, :sources,
-                      :confidence, :handoff_reason, keyword_init: true) do
+                      :confidence, :needs_human, :handoff_reason, keyword_init: true) do
     def auto_answer?
-      answer.present? && sources.any? && confidence >= MIN_CONFIDENCE
+      answer.present? && sources.any? && confidence >= MIN_CONFIDENCE && !needs_human && priority != "urgent"
     end
   end
 
@@ -27,12 +30,14 @@ class TicketTriage
     4. Talebi YALNIZCA aşağıdaki bilgi tabanı maddelerine dayanarak tam olarak yanıtlayabiliyorsan,
        müşteriye nazik, kısa bir Türkçe yanıt yaz ve dayandığın madde id'lerini "sources" listesine koy.
        Bilgi tabanında olmayan hiçbir bilgi, süre, tutar ya da söz ekleme.
-       Şikâyet, öfke, hukuki tehdit, kişiye özel inceleme gerektiren durum ya da emin olmadığın her durumda
-       "answer" boş kalsın ve "handoff_reason" içinde nedenini yaz.
+       Şikâyet, öfke, hukuki tehdit, para kaybı, kişiye özel inceleme gerektiren durum ya da emin olmadığın her durumda
+       "needs_human" true olsun, "answer" boş kalsın ve "handoff_reason" içinde nedenini yaz.
+       Bilgi tabanındaki bir maddeyi müşterinin durumuna uymuyorsa zorlama.
 
     Yalnızca şu JSON'u döndür:
     {"category": "...", "priority": "low|normal|high|urgent", "summary": "...", "reason": "aciliyet gerekçesi",
-     "answer": "... ya da boş", "sources": ["madde-id"], "confidence": 0.0-1.0, "handoff_reason": "... ya da boş"}
+     "answer": "... ya da boş", "sources": ["madde-id"], "confidence": 0.0-1.0, "needs_human": true|false,
+     "handoff_reason": "... ya da boş"}
   PROMPT
 
   def self.knowledge_base
@@ -70,6 +75,7 @@ class TicketTriage
       answer: data["answer"].to_s.strip.first(2000),
       sources: Array(data["sources"]).map(&:to_s) & known_ids,
       confidence: data["confidence"].to_f.clamp(0.0, 1.0),
+      needs_human: data["needs_human"] == true || data["needs_human"].to_s == "true",
       handoff_reason: data["handoff_reason"].to_s.first(300)
     )
   end

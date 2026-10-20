@@ -29,9 +29,17 @@ class AiTriageJob < ApplicationJob
       ticket.add_ai_reply!(body: result.answer)
       ticket.update!(ai_status: "answered")
     else
-      ticket.record_handoff!(result.handoff_reason.presence || "Bilgi tabanında dayanak yok ya da asistan emin değil")
+      ticket.record_handoff!(handoff_reason(result))
     end
   rescue Ticket::InvalidTransition => e
     Rails.logger.info("[AiTriageJob] ##{ticket_id}: #{e.message}")
   end
+
+  private
+    def handoff_reason(result)
+      return result.handoff_reason if result.handoff_reason.present?
+      return "Acil talep; asistan yanıt vermez, bir insan incelemeli" if result.priority == "urgent"
+
+      "Bilgi tabanında dayanak yok ya da asistan emin değil"
+    end
 end

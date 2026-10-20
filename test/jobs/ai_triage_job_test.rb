@@ -54,6 +54,32 @@ class AiTriageJobTest < ActiveJob::TestCase
     assert ticket.comments.find_by(ai_generated: true, internal: true).body.start_with?("İnsana devredildi")
   end
 
+  test "LLM 'insan gerekli' derse yanit yazmis olsa bile yayinlanmaz" do
+    LlmClient.adapter = FakeLlm.new(ANSWER.merge("needs_human" => true, "handoff_reason" => "Hukuki tehdit var"))
+    ticket = create_ticket
+
+    AiTriageJob.perform_now(ticket.id)
+
+    ticket.reload
+    assert_equal "handed_off", ticket.ai_status
+    assert ticket.comments.where(ai_generated: true, internal: false).none?
+    assert_match "Hukuki tehdit var", ticket.comments.find_by(internal: true).body
+  end
+
+  test "acil talebe asistan yanit vermez, insana devreder" do
+    # Canlida ilk denemede: cift cekim + hukuki tehdit -> model acil dedi ama yine de yanit yazdi.
+    LlmClient.adapter = FakeLlm.new(ANSWER.merge("priority" => "urgent", "handoff_reason" => ""))
+    ticket = create_ticket(priority: "low")
+
+    AiTriageJob.perform_now(ticket.id)
+
+    ticket.reload
+    assert_equal "urgent", ticket.priority
+    assert_equal "handed_off", ticket.ai_status
+    assert ticket.comments.where(ai_generated: true, internal: false).none?
+    assert ticket.comments.exists?(internal: true, body: "İnsana devredildi: Acil talep; asistan yanıt vermez, bir insan incelemeli")
+  end
+
   test "emin olmayan asistan insana devreder" do
     LlmClient.adapter = FakeLlm.new(ANSWER.merge("confidence" => 0.4, "handoff_reason" => "Müşteri öfkeli"))
     ticket = create_ticket

@@ -86,6 +86,18 @@ bağlamı koruyan sentetik bir profil."
 4. Ajan: `ruby bin/agent-demo kargo` → asistan bilgi tabanından yanıtlar → ajan "teşekkürler, çözüldü" yazar → talep **Çözüldü**.
 5. Ajan: `ruby bin/agent-demo sikayet` → asistan yanıtlamaz, aciliyeti yükseltir, talebi **insana devreder** → kuyrukta "İnsana devredilenler".
 
+**Canlıda bulduğum ve düzelttiğim iki sorun:**
+
+1. **Model bulunamadı (404).** İlk deploy'da yapay zekâ kartı "yanıt veremedi" dedi. Render loglarında:
+   `[LlmClient] HTTP 404: The model llama-3.3-70b-versatile does not exist or you do not have access to it`.
+   Groq, Llama 3.3'ü ücretsiz plandan kaldırmış. `GROQ_MODEL=openai/gpt-oss-120b` ile çözüldü; koddaki varsayılan da değişti.
+2. **Asistan, yanıtlamaması gereken bir talebe yanıt verdi.** Canlı denemede (#63) müşteri "kartımdan iki kez para çekildi,
+   çözülmezse tüketici hakem heyetine başvuracağım" yazdı. Model doğru şekilde aciliyeti **Düşük → Acil** yükseltti, ama
+   yine de bilgi tabanındaki "ödeme alındı ama sipariş oluşmadı" maddesini duruma uydurup bir yanıt yayınladı.
+   İstemde "şikâyet ve hukuki tehditte yanıt verme" yazmasına rağmen. Sonuç: **istem tek başına güvenlik önlemi değil.**
+   Düzeltme kodda: LLM'in kendi kararı "insan gerekli" (`needs_human`) ya da "acil" ise yanıt yazmış olsa bile yayınlanmaz,
+   talep insana devredilir. İki yeni testle kanıtlandı (`test/jobs/ai_triage_job_test.rb`).
+
 **Vaat edip yapamadıklarım / sınırlar:**
 
 - Maskeleme bilerek basit (düz kurallar). Adres, plaka, serbest yazılmış isimler (formda verilmemişse) yakalanmıyor;

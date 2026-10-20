@@ -9,7 +9,8 @@ require "net/http"
 # Testlerde gercek API cagrilmaz: LlmClient.adapter = FakeLlm.new(...) (test/test_helpers).
 class LlmClient
   ENDPOINT = URI("https://api.groq.com/openai/v1/chat/completions")
-  DEFAULT_MODEL = "llama-3.3-70b-versatile"
+  # Groq ucretsiz planinda acik model. (Llama 3.3 70B kurumsal plana tasinmis; canlida "hata" veriyordu.)
+  DEFAULT_MODEL = "openai/gpt-oss-120b"
   TIMEOUT = 15
 
   class << self

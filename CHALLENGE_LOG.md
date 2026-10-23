@@ -72,6 +72,7 @@ GitHub Actions iki commit'te de yeşil.
 | #63 | Çift çekim şikâyeti → model aciliyeti Düşük→Acil yükseltti **ama yanıt da yayınladı** (hata; aşağıda) |
 | #64 | Aynı şikâyet, düzeltmeden sonra → Acil'e yükseltildi, yanıt yayınlanmadı, **insana devredildi** |
 | #65 | `ruby bin/agent-demo kargo`: ajan API ile talep açtı → asistan persona adıyla ("Selin Hanım") yanıtladı, müşteriye gerçek adıyla gösterildi → ajan "teşekkürler, çözüldü" yazdı → LLM "çözüldü" dedi, talep **Çözüldü** |
+| #67 (23 Ekim) | Temsilci ekranında "Emre Yılmaz · ~24–25 yaş · sağlık alanında çalışan · İzmir" → **"Gerçek veriyi göster"**, gerekçe "kargo firmasına telefon iletilecek" → gerçek e-posta, ad, doğum yılı, meslek, şehir açıldı; **Erişim kaydı**na "23 Ekim Cuma 21:07 · temsilci · gerekçe" olarak düştü. Aynı gün 15 Ekim'den kalan "Müşteri bekleniyor" demo talepleri 7 gün kuralıyla kendiliğinden çözüldü |
 | #66 | `ruby bin/agent-demo sikayet`: ajan, TC no ve kart numarası içeren çift çekim şikâyeti açtı → model Düşük→Acil yükseltti, kendi kararıyla "kişiye özel inceleme gerekiyor" dedi → yanıt yazılmadı, **insana devredildi**; temsilci ekranında TC no/kart no yok |
 
 **Kod:**
@@ -125,8 +126,6 @@ GitHub Actions iki commit'te de yeşil.
 - Gerçek adın Türkçe ekli halleri (ör. "Begüm'ün" değil "Begümün") ve "Demir kapı" gibi ad olmayan kullanımlar ayırt edilmiyor.
 - "Bilgi tabanı" küçük (6 madde) ve tamamı isteme ekleniyor; gerçek bir vektör araması (RAG) yok.
 - Temsilci, gerçek veriyi gördükten sonra yanıtına kopyalarsa bu engellenmiyor (yalnızca kayıt tutuluyor).
-- "Gerçek veriyi göster" (gerekçeli erişim + kayıt) akışı canlıda sunumda gösterilecek; şu an testlerle kanıtlı
-  (`test/controllers/privacy_screen_test.rb`).
 - LLM kararları her zaman doğru değil: #63'te görüldüğü gibi model istemdeki kurala uymayabiliyor. Bu yüzden
   "yanıt yayınlansın mı?" kararının son kontrolü kodda (kaynak var mı, güven eşiği, insan gerekli mi, acil mi).
 
